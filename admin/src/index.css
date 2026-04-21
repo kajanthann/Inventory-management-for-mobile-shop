@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&family=Share+Tech&display=swap');
+
+@import "tailwindcss";
+
+/* your other styles below */
+body {
+  font-family: "Roboto Mono", monospace;
+}
+
+/* Hide scrollbar for all browsers */
+::-webkit-scrollbar {
+  width: 0px;
+}
+

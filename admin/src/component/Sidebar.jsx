@@ -1,5 +1,9 @@
-import React from "react";
+import React, { useContext } from "react";
 import { NavLink } from "react-router-dom";
+import logo from "../assets/slogo.png";
+import logo1 from "../assets/slogo1.png";
+import { AppContext } from "../context/AppContext";
+
 import {
   FaTachometerAlt,
   FaBoxes,
@@ -8,27 +12,46 @@ import {
   FaUserCircle,
   FaSignOutAlt,
   FaExclamationTriangle,
+  FaMoon,
+  FaSun,
 } from "react-icons/fa";
 
 const Sidebar = () => {
+  const { theme, toggleTheme } = useContext(AppContext);
+
   const menu = [
     { name: "Dashboard", icon: <FaTachometerAlt />, path: "/dashboard" },
     { name: "Inventory", icon: <FaBoxes />, path: "/inventory" },
     { name: "Sales", icon: <FaShoppingCart />, path: "/sales" },
     { name: "Repair", icon: <FaTools />, path: "/repair" },
+    { name: "Animation", icon: <FaTools />, path: "/animation" },
   ];
 
   return (
-    <div className="h-screen bg-[#1a1a1a] border-r border-[#2a2a2a] flex flex-col 
-                    w-16 sm:w-56 transition-all duration-300">
+    <div className="h-screen flex flex-col w-16 sm:w-52
+      bg-white dark:bg-[#1a1a1a]
+      border-r border-gray-200 dark:border-[#2a2a2a]
+      transition-colors duration-300">
 
       {/* LOGO */}
-      <div className="p-4 border-b border-[#2a2a2a]">
-        <h1 className="text-lg sm:text-2xl font-bold text-center sm:text-left">
-          <span className="text-white">S</span>
-          <span className="text-[#E61919] sm:inline hidden">martSpider</span>
-        </h1>
-        <p className="text-[10px] text-gray-400 hidden sm:block">
+      <div className="p-2 border-b border-gray-200 dark:border-[#2a2a2a]">
+        <div className="flex items-center gap-3">
+          <img src={theme === "dark" ? logo1 : logo} alt="logo" className={`${theme === "dark" ? "pl-2 h-10 w-auto" : "h-14 w-35"}`} />
+
+
+          {theme === "dark" && (
+            <div className="hidden sm:block leading-tight">
+            <p className="chrome-text text-xl font-extrabold tracking-wider">
+              SMART
+            </p>
+            <p className="text-red-500 font-bold text-lg -mt-2">
+              SPIDER
+            </p>
+          </div>
+          )}
+        </div>
+
+        <p className="text-[10px] text-gray-500 dark:text-gray-400 hidden sm:block">
           Inventory System
         </p>
       </div>
@@ -43,38 +66,55 @@ const Sidebar = () => {
               `flex items-center justify-center sm:justify-start gap-3 px-3 sm:px-5 py-3 mx-2 rounded-md transition
               ${
                 isActive
-                  ? "bg-[#2a2a2a] border-l-0 sm:border-l-4 border-[#E61919] text-white"
-                  : "text-gray-400 hover:bg-[#222] hover:text-white"
+                  ? "bg-gray-200 dark:bg-[#2a2a2a] border-l-0 sm:border-l-4 border-[#E61919] text-black dark:text-white"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#222] hover:text-black dark:hover:text-white"
               }`
             }
           >
             <span className="text-lg">{item.icon}</span>
-
-            {/* TEXT HIDDEN ON MOBILE */}
-            <span className="text-sm font-medium hidden sm:block">
+            <span className="hidden sm:block text-sm font-medium">
               {item.name}
             </span>
           </NavLink>
         ))}
       </div>
 
-      {/* LOW STOCK ALERT (hide in mobile) */}
+      {/* THEME TOGGLE */}
       <div className="px-3 mb-3 hidden sm:block">
-        <div className="p-3 bg-black border border-[#2d1a00] rounded-md">
+        <button
+          onClick={toggleTheme}
+          className="w-full flex cursor-pointer items-center justify-center gap-2 px-3 py-2 rounded-md
+          border border-gray-300 dark:border-gray-600
+          text-gray-600 dark:text-gray-300
+          hover:bg-gray-100 dark:hover:bg-[#222] transition"
+        >
+          {theme === "dark" ? <FaSun /> : <FaMoon />}
+          <span className="text-xs">
+            {theme === "dark" ? "Light Mode" : "Dark Mode"}
+          </span>
+        </button>
+      </div>
+
+      {/* LOW STOCK */}
+      <div className="px-3 mb-3 hidden sm:block">
+        <div className="p-3 rounded-md
+          bg-yellow-50 dark:bg-black
+          border border-yellow-200 dark:border-[#2d1a00]">
+
           <div className="flex items-center gap-2 mb-1">
             <FaExclamationTriangle className="text-yellow-500 text-xs" />
-            <span className="text-xs font-semibold text-yellow-500">
+            <span className="text-xs font-semibold text-yellow-600 dark:text-yellow-500">
               Low Stock Alert
             </span>
           </div>
 
-          <p className="text-xs text-gray-500 mb-2">
+          <p className="text-[11px] text-gray-600 dark:text-gray-500 mb-2">
             3 items need restocking
           </p>
 
           <NavLink
             to="/inventory"
-            className="text-xs text-[#E61919] font-medium hover:underline"
+            className="text-xs cursor-pointer text-[#E61919] font-medium hover:underline"
           >
             View items →
           </NavLink>
@@ -82,29 +122,27 @@ const Sidebar = () => {
       </div>
 
       {/* PROFILE */}
-      <div className="mt-auto px-2 sm:px-3 py-3 border-t border-[#2a2a2a]">
-        <div className="flex items-center justify-center sm:justify-between">
-
-          {/* PROFILE */}
+      <div className="mt-auto px-3 py-3 border-t border-gray-200 dark:border-[#2a2a2a]">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <FaUserCircle className="text-2xl sm:text-3xl text-gray-300" />
+            <FaUserCircle className="text-3xl text-gray-500 dark:text-gray-300" />
 
-            {/* HIDE TEXT ON MOBILE */}
             <div className="hidden sm:block">
-              <p className="text-sm text-white font-medium">Admin</p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs font-medium text-black dark:text-white">
+                Admin
+              </p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400">
                 admin@mobistock.com
               </p>
             </div>
           </div>
 
-          {/* LOGOUT */}
-          <button className="hidden sm:block text-gray-400 hover:text-red-500 transition cursor-pointer">
+          <button className="hidden sm:block cursor-pointer text-gray-500 dark:text-gray-400 hover:text-red-500 transition">
             <FaSignOutAlt />
           </button>
-
         </div>
       </div>
+
     </div>
   );
 };

@@ -1,14 +1,36 @@
+/* Google fonts */
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&family=Share+Tech&display=swap');
 
 @import "tailwindcss";
 
-/* your other styles below */
+/* enable dark variant (IMPORTANT for v4 theme toggle) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 body {
   font-family: "Roboto Mono", monospace;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Hide scrollbar for all browsers */
+/* Hide scrollbar */
 ::-webkit-scrollbar {
   width: 0px;
 }
 
+.chrome-text {
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #cfcfcf 20%,
+    #9a9a9a 40%,
+    #ffffff 60%,
+    #6e6e6e 80%,
+    #dcdcdc 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1px #444;
+
+  text-shadow:
+    0 1px 2px rgba(255,255,255,0.3),
+    0 3px 6px rgba(0,0,0,0.6);
+}

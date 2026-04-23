@@ -10,7 +10,18 @@ import Sales from "./pages/Sales";
 import { AppContext } from "./context/AppContext";
 import Animation from "./pages/Animation";
 
+const ProtectedRoute = ({ children }) => {
+  const { aToken } = useContext(AdminContext);
+  const token = aToken || localStorage.getItem("aToken");
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
 const SpiderWeb = ({ opacity = 0.25, rotate = 0 }) => (
+  
   <svg
     viewBox="0 0 500 500"
     xmlns="http://www.w3.org/2000/svg"
@@ -79,7 +90,7 @@ const AppLayout = () => {
   const { theme } = useContext(AppContext);
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-[#121212] text-gray-900 dark:text-white transition-colors duration-300">
+    <div className="flex h-screen bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-white transition-colors duration-300">
 
       {/* Sidebar */}
       <Sidebar />

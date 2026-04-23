@@ -1,175 +1,5 @@
-// import React, { useEffect, useState } from "react";
-
-// const Animation = ({ onDone }) => {
-//   const [progress, setProgress] = useState(0);
-//   const [visible, setVisible] = useState(true);
-//   const [activeBox, setActiveBox] = useState(0);
-
-//   useEffect(() => {
-//     const interval = setInterval(() => {
-//       setProgress((prev) => {
-//         if (prev >= 100) {
-//           clearInterval(interval);
-//           setTimeout(() => {
-//             setVisible(false);
-//             setTimeout(onDone, 400);
-//           }, 300);
-//           return 100;
-//         }
-//         return prev + 1.4;
-//       });
-//     }, 28);
-//     return () => clearInterval(interval);
-//   }, []);
-
-//   // cycle active box 0–8 continuously
-//   useEffect(() => {
-//     const t = setInterval(() => {
-//       setActiveBox((prev) => (prev + 1) % 9);
-//     }, 180);
-//     return () => clearInterval(t);
-//   }, []);
-
-//   const text = progress < 25 ? "Initializing..."
-//     : progress < 50 ? "Loading inventory..."
-//     : progress < 75 ? "Fetching data..."
-//     : progress < 95 ? "Almost ready..."
-//     : "Welcome!";
-
-//   // wave pattern — each box has a delay based on position
-//   const waveOrder = [0, 1, 2, 5, 8, 7, 6, 3, 4]; // clockwise spiral
-//   const boxDelay = (i) => `${waveOrder.indexOf(i) * 0.08}s`;
-
-//   // box state: active = bright red, near-active = dim red, rest = dark
-//   const getBoxStyle = (i) => {
-//     const dist = Math.min(
-//       Math.abs(waveOrder.indexOf(i) - waveOrder.indexOf(activeBox)),
-//       9 - Math.abs(waveOrder.indexOf(i) - waveOrder.indexOf(activeBox))
-//     );
-//     if (dist === 0) return { bg: "#b00000", shadow: "0 0 14px rgba(176,0,0,0.9)", scale: 1.08 };
-//     if (dist === 1) return { bg: "rgba(176,0,0,0.45)", shadow: "0 0 6px rgba(176,0,0,0.4)", scale: 1.02 };
-//     if (dist === 2) return { bg: "rgba(176,0,0,0.15)", shadow: "none", scale: 1 };
-//     return { bg: "#111111", shadow: "none", scale: 1 };
-//   };
-
-//   // center box (index 4) always has spider icon
-//   const SpiderIcon = () => (
-//     <svg viewBox="0 0 40 40" width="26" height="26">
-//       <ellipse cx="20" cy="23" rx="5.5" ry="7" fill="rgba(176,0,0,0.95)" />
-//       <circle cx="20" cy="14" r="4.5" fill="rgba(150,5,5,0.95)" />
-//       <circle cx="18" cy="13" r="1.1" fill="white" />
-//       <circle cx="22" cy="13" r="1.1" fill="white" />
-//       <path d="M15 19 Q9 16 5 13" stroke="rgba(176,0,0,0.9)" strokeWidth="1.1" fill="none" strokeLinecap="round"/>
-//       <path d="M15 22 Q8 21 4 21" stroke="rgba(176,0,0,0.9)" strokeWidth="1.1" fill="none" strokeLinecap="round"/>
-//       <path d="M15 25 Q9 26 5 29" stroke="rgba(176,0,0,0.9)" strokeWidth="1.1" fill="none" strokeLinecap="round"/>
-//       <path d="M15 28 Q10 31 7 35" stroke="rgba(176,0,0,0.9)" strokeWidth="1.1" fill="none" strokeLinecap="round"/>
-//       <path d="M25 19 Q31 16 35 13" stroke="rgba(176,0,0,0.9)" strokeWidth="1.1" fill="none" strokeLinecap="round"/>
-//       <path d="M25 22 Q32 21 36 21" stroke="rgba(176,0,0,0.9)" strokeWidth="1.1" fill="none" strokeLinecap="round"/>
-//       <path d="M25 25 Q31 26 35 29" stroke="rgba(176,0,0,0.9)" strokeWidth="1.1" fill="none" strokeLinecap="round"/>
-//       <path d="M25 28 Q30 31 33 35" stroke="rgba(176,0,0,0.9)" strokeWidth="1.1" fill="none" strokeLinecap="round"/>
-//     </svg>
-//   );
-
-//   return (
-//     <div style={{
-//       position: "fixed", inset: 0, zIndex: 9999,
-//       background: "#050505",
-//       display: "flex", flexDirection: "column",
-//       alignItems: "center", justifyContent: "center",
-//       opacity: visible ? 1 : 0,
-//       transition: "opacity 0.4s ease",
-//     }}>
-
-//       {/* 3×3 Box Grid */}
-//       <div style={{
-//         display: "grid",
-//         gridTemplateColumns: "repeat(3, 1fr)",
-//         gap: 8,
-//         width: 132,
-//         height: 132,
-//         marginBottom: 36,
-//       }}>
-//         {Array.from({ length: 9 }).map((_, i) => {
-//           const { bg, shadow, scale } = getBoxStyle(i);
-//           const isCenter = i === 4;
-//           return (
-//             <div
-//               key={i}
-//               style={{
-//                 borderRadius: 8,
-//                 background: isCenter ? "rgba(176,0,0,0.12)" : bg,
-//                 border: isCenter
-//                   ? "1px solid rgba(176,0,0,0.35)"
-//                   : `1px solid ${bg === "#111111" ? "#1a1a1a" : "rgba(176,0,0,0.3)"}`,
-//                 boxShadow: isCenter
-//                   ? "0 0 10px rgba(176,0,0,0.25)"
-//                   : shadow,
-//                 transform: `scale(${isCenter ? 1 : scale})`,
-//                 transition: "all 0.18s ease",
-//                 display: "flex",
-//                 alignItems: "center",
-//                 justifyContent: "center",
-//                 animation: `boxFloat ${0.8 + (i % 3) * 0.2}s ease-in-out ${boxDelay(i)} infinite alternate`,
-//               }}
-//             >
-//               {isCenter && <SpiderIcon />}
-//             </div>
-//           );
-//         })}
-//       </div>
-
-//       {/* Brand */}
-//       <div style={{ textAlign: "center", marginBottom: 28 }}>
-//         <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>
-//           <span style={{ color: "#ffffff" }}>SMART</span>
-//           <span style={{ color: "#b00000" }}>SPIDER</span>
-//         </h1>
-//         <p style={{ fontSize: 10, color: "#374151", margin: "4px 0 0", letterSpacing: "0.12em" }}>
-//           INVENTORY SYSTEM
-//         </p>
-//       </div>
-
-//       {/* Segmented progress bar */}
-//       <div style={{ width: 200, marginBottom: 10 }}>
-//         <div style={{ display: "flex", gap: 3 }}>
-//           {Array.from({ length: 20 }).map((_, i) => {
-//             const filled = (progress / 100) * 20 > i;
-//             return (
-//               <div key={i} style={{
-//                 flex: 1, height: 3, borderRadius: 2,
-//                 background: filled ? "#b00000" : "#1a1a1a",
-//                 transition: "background 0.15s ease",
-//                 boxShadow: filled ? "0 0 4px rgba(176,0,0,0.5)" : "none",
-//               }} />
-//             );
-//           })}
-//         </div>
-//       </div>
-
-//       {/* Status + percent */}
-//       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: 200 }}>
-//         <p style={{ fontSize: 11, color: "#4b5563", margin: 0, letterSpacing: "0.04em" }}>
-//           {text}
-//         </p>
-//         <p style={{ fontSize: 11, color: "#b00000", margin: 0, fontWeight: 600, fontFamily: "monospace" }}>
-//           {Math.round(progress)}%
-//         </p>
-//       </div>
-
-//       <style>{`
-//         @keyframes boxFloat {
-//           from { transform: translateY(0px); }
-//           to   { transform: translateY(-3px); }
-//         }
-//       `}</style>
-//     </div>
-//   );
-// };
-
-// export default Animation;
 import React, { useEffect, useState } from "react";
 
-// ── Shared progress hook ─────────────────────────────────────────
 const useProgress = (speed = 1.2) => {
   const [p, setP] = useState(0);
   useEffect(() => {
@@ -179,310 +9,328 @@ const useProgress = (speed = 1.2) => {
   return p;
 };
 
-// ── 1. Spinning Arc ──────────────────────────────────────────────
-const Anim1 = () => {
-  const p = useProgress();
-  return (
-    <Box label="Spinning Arc" n={1}>
-      <div style={{ position: "relative", width: 80, height: 80 }}>
-        {[0, 1, 2].map((i) => (
-          <div key={i} style={{
-            position: "absolute", inset: 0, borderRadius: "50%",
-            border: "1px solid rgba(176,0,0,0.35)",
-            animation: `ping 1.8s ease-out ${i * 0.5}s infinite`,
-          }} />
-        ))}
-        <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", animation: "spin 1.1s linear infinite" }} viewBox="0 0 80 80">
-          <circle cx="40" cy="40" r="34" fill="none" stroke="#b00000" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="55 160" />
-        </svg>
-        <svg style={{ position: "absolute", inset: 6, width: "calc(100% - 12px)", height: "calc(100% - 12px)", animation: "spinReverse 1.8s linear infinite" }} viewBox="0 0 68 68">
-          <circle cx="34" cy="34" r="28" fill="none" stroke="rgba(176,0,0,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="25 155" />
-        </svg>
-        <Spider size={22} style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />
-      </div>
-      <SegBar p={p} />
-    </Box>
-  );
-};
-
-// ── 2. Dot Wave ──────────────────────────────────────────────────
-const Anim2 = () => {
-  const p = useProgress(0.9);
-  return (
-    <Box label="Dot Wave" n={2}>
-      <div style={{ display: "flex", gap: 8, alignItems: "center", height: 50 }}>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div key={i} style={{
-            width: 10, height: 10, borderRadius: "50%", background: "#b00000",
-            animation: `dotBounce 1.2s ease-in-out ${i * 0.15}s infinite`,
-            boxShadow: "0 0 6px rgba(176,0,0,0.5)",
-          }} />
-        ))}
-      </div>
-      <SegBar p={p} />
-    </Box>
-  );
-};
-
-// ── 3. Web Spinner ───────────────────────────────────────────────
-const Anim3 = () => {
-  const p = useProgress(1.0);
-  const spokes = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
-  const rings = [15, 28, 41];
-  return (
-    <Box label="Web Spinner" n={3}>
-      <div style={{ position: "relative", width: 80, height: 80 }}>
-        <svg style={{ width: "100%", height: "100%", animation: "spin 4s linear infinite" }} viewBox="0 0 100 100">
-          {spokes.map((angle, i) => {
-            const rad = (angle * Math.PI) / 180;
-            return <line key={i} x1="50" y1="50" x2={50 + 46 * Math.cos(rad)} y2={50 + 46 * Math.sin(rad)} stroke="rgba(176,0,0,0.45)" strokeWidth="0.8" />;
-          })}
-          {rings.map((r, ri) => {
-            const pts = spokes.map((a) => { const rd = (a * Math.PI) / 180; return `${50 + r * Math.cos(rd)},${50 + r * Math.sin(rd)}`; });
-            return <polygon key={ri} points={pts.join(" ")} fill="none" stroke="rgba(176,0,0,0.35)" strokeWidth="0.8" />;
-          })}
-          <ellipse cx="50" cy="50" rx="5" ry="6" fill="rgba(176,0,0,0.85)" />
-          <circle cx="50" cy="44" r="3.5" fill="rgba(140,5,5,0.85)" />
-          <circle cx="48.5" cy="43" r="0.8" fill="white" />
-          <circle cx="51.5" cy="43" r="0.8" fill="white" />
-        </svg>
-      </div>
-      <SegBar p={p} />
-    </Box>
-  );
-};
-
-// ── 4. Pulse Rings ───────────────────────────────────────────────
-const Anim4 = () => {
-  const p = useProgress(1.1);
-  return (
-    <Box label="Pulse Rings" n={4}>
-      <div style={{ position: "relative", width: 80, height: 80 }}>
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} style={{
-            position: "absolute",
-            top: "50%", left: "50%",
-            width: 16 + i * 18, height: 16 + i * 18,
-            borderRadius: "50%",
-            border: `${1.5 - i * 0.2}px solid rgba(176,0,0,${0.7 - i * 0.15})`,
-            transform: "translate(-50%,-50%)",
-            animation: `pulseRing 2s ease-in-out ${i * 0.3}s infinite`,
-          }} />
-        ))}
-        <Spider size={20} style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />
-      </div>
-      <SegBar p={p} />
-    </Box>
-  );
-};
-
-// ── 5. Bar Equalizer ─────────────────────────────────────────────
-const Anim5 = () => {
-  const p = useProgress(0.8);
-  return (
-    <Box label="Equalizer" n={5}>
-      <div style={{ display: "flex", gap: 5, alignItems: "flex-end", height: 50 }}>
-        {[0.6, 1, 0.4, 0.8, 0.5, 0.9, 0.3, 0.7].map((h, i) => (
-          <div key={i} style={{
-            width: 7, borderRadius: "2px 2px 0 0",
-            background: `rgba(176,0,0,${0.5 + h * 0.5})`,
-            animation: `eqBar 1s ease-in-out ${i * 0.1}s infinite alternate`,
-            boxShadow: "0 0 4px rgba(176,0,0,0.3)",
-            animationDuration: `${0.6 + i * 0.1}s`,
-          }} />
-        ))}
-      </div>
-      <SegBar p={p} />
-    </Box>
-  );
-};
-
-// ── 6. Orbit Dots ────────────────────────────────────────────────
-const Anim6 = () => {
-  const p = useProgress(1.3);
-  return (
-    <Box label="Orbit Dots" n={6}>
-      <div style={{ position: "relative", width: 80, height: 80 }}>
-        <Spider size={20} style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)" }} />
-        {[0, 1, 2].map((i) => (
-          <div key={i} style={{
-            position: "absolute", top: "50%", left: "50%",
-            width: 7, height: 7, borderRadius: "50%",
-            background: "#b00000",
-            boxShadow: "0 0 6px rgba(176,0,0,0.7)",
-            animation: `orbit${i + 1} ${1.2 + i * 0.4}s linear infinite`,
-            transformOrigin: "0 0",
-          }} />
-        ))}
-      </div>
-      <SegBar p={p} />
-    </Box>
-  );
-};
-
-// ── 7. Typewriter ────────────────────────────────────────────────
-const Anim7 = () => {
-  const p = useProgress(0.7);
-  const words = ["SMART", "SPIDER", "SYSTEM", "READY"];
-  const [wIdx, setWIdx] = useState(0);
-  const [chars, setChars] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => {
-      setChars((c) => {
-        if (c >= words[wIdx].length) {
-          setTimeout(() => { setWIdx((w) => (w + 1) % words.length); setChars(0); }, 500);
-          return c;
-        }
-        return c + 1;
-      });
-    }, 120);
-    return () => clearInterval(id);
-  }, [wIdx]);
-  return (
-    <Box label="Typewriter" n={7}>
-      <div style={{ height: 50, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontFamily: "monospace", fontSize: 18, fontWeight: 700, color: "#b00000", letterSpacing: "0.1em" }}>
-          {words[wIdx].slice(0, chars)}
-          <span style={{ animation: "blink 0.8s step-end infinite", color: "#b00000" }}>|</span>
-        </span>
-      </div>
-      <SegBar p={p} />
-    </Box>
-  );
-};
-
-// ── 8. Hex Grid ──────────────────────────────────────────────────
-const Anim8 = () => {
-  const p = useProgress(1.0);
-  const hexes = [
-    [0, 0], [1, 0], [2, 0],
-    [0.5, 1], [1.5, 1],
-    [1, 2],
-  ];
-  return (
-    <Box label="Hex Grid" n={8}>
-      <div style={{ position: "relative", width: 80, height: 70 }}>
-        {hexes.map(([col, row], i) => (
-          <div key={i} style={{
-            position: "absolute",
-            left: col * 24 + 4,
-            top: row * 22,
-            width: 18, height: 18,
-            background: "rgba(176,0,0,0.08)",
-            border: "1px solid rgba(176,0,0,0.4)",
-            borderRadius: 4,
-            animation: `hexPulse 1.4s ease-in-out ${i * 0.18}s infinite`,
-          }} />
-        ))}
-      </div>
-      <SegBar p={p} />
-    </Box>
-  );
-};
-
-// ── 9. Silk Thread Drop ──────────────────────────────────────────
-const Anim9 = () => {
-  const p = useProgress(1.2);
-  const [dropY, setDropY] = useState(0);
-  useEffect(() => {
-    let y = 0; let dir = 1;
-    const id = setInterval(() => {
-      y += dir * 0.8;
-      if (y >= 36 || y <= 0) dir *= -1;
-      setDropY(y);
-    }, 20);
-    return () => clearInterval(id);
-  }, []);
-  return (
-    <Box label="Silk Drop" n={9}>
-      <div style={{ position: "relative", width: 60, height: 60 }}>
-        <svg width="60" height="60" viewBox="0 0 60 60">
-          {/* Thread */}
-          <line x1="30" y1="0" x2="30" y2={dropY + 8} stroke="rgba(176,0,0,0.4)" strokeWidth="0.8" strokeDasharray="3,2" />
-          {/* Spider body */}
-          <g transform={`translate(30, ${dropY + 8})`}>
-            <ellipse cx="0" cy="4" rx="5" ry="6" fill="rgba(176,0,0,0.85)" />
-            <circle cx="0" cy="-3" r="4" fill="rgba(140,5,5,0.85)" />
-            <circle cx="-1.5" cy="-3.5" r="0.9" fill="white" />
-            <circle cx="1.5" cy="-3.5" r="0.9" fill="white" />
-            {/* legs */}
-            <path d="M-4 0 Q-12 -3 -16 -6" stroke="rgba(176,0,0,0.8)" strokeWidth="1" fill="none" />
-            <path d="M-4 3 Q-12 3 -16 3" stroke="rgba(176,0,0,0.8)" strokeWidth="1" fill="none" />
-            <path d="M4 0 Q12 -3 16 -6" stroke="rgba(176,0,0,0.8)" strokeWidth="1" fill="none" />
-            <path d="M4 3 Q12 3 16 3" stroke="rgba(176,0,0,0.8)" strokeWidth="1" fill="none" />
-          </g>
-        </svg>
-      </div>
-      <SegBar p={p} />
-    </Box>
-  );
-};
-
-// ── Shared Spider SVG ────────────────────────────────────────────
-const Spider = ({ size = 28, style = {} }) => (
-  <svg viewBox="0 0 40 40" width={size} height={size} style={style}>
-    <ellipse cx="20" cy="22" rx="6" ry="8" fill="rgba(176,0,0,0.9)" />
-    <circle cx="20" cy="13" r="5" fill="rgba(150,5,5,0.9)" />
-    <circle cx="18" cy="12" r="1.2" fill="white" />
-    <circle cx="22" cy="12" r="1.2" fill="white" />
-    <path d="M15 18 Q9 15 5 12" stroke="rgba(176,0,0,0.85)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-    <path d="M15 21 Q8 20 4 20" stroke="rgba(176,0,0,0.85)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-    <path d="M15 24 Q9 25 5 28" stroke="rgba(176,0,0,0.85)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-    <path d="M25 18 Q31 15 35 12" stroke="rgba(176,0,0,0.85)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-    <path d="M25 21 Q32 20 36 20" stroke="rgba(176,0,0,0.85)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-    <path d="M25 24 Q31 25 35 28" stroke="rgba(176,0,0,0.85)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-  </svg>
+const Spider = ({ cx = 36, cy = 36, r1 = 5, r2 = 3.5 }) => (
+  <>
+    <ellipse cx={cx} cy={cy + r1 * 0.8} rx={r1 * 0.75} ry={r1} fill="#b00000" />
+    <circle cx={cx} cy={cy - r2 * 0.5} r={r2} fill="#8b0000" />
+    <circle cx={cx - 1.5} cy={cy - r2 * 0.8} r={1} fill="white" />
+    <circle cx={cx + 1.5} cy={cy - r2 * 0.8} r={1} fill="white" />
+    <path d={`M${cx - r1 * 0.8} ${cy} Q${cx - 14} ${cy - 4} ${cx - 20} ${cy - 8}`} stroke="#b00000" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+    <path d={`M${cx - r1 * 0.8} ${cy + 3} Q${cx - 14} ${cy + 3} ${cx - 20} ${cy + 3}`} stroke="#b00000" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+    <path d={`M${cx - r1 * 0.8} ${cy + 6} Q${cx - 14} ${cy + 9} ${cx - 20} ${cy + 13}`} stroke="#b00000" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+    <path d={`M${cx + r1 * 0.8} ${cy} Q${cx + 14} ${cy - 4} ${cx + 20} ${cy - 8}`} stroke="#b00000" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+    <path d={`M${cx + r1 * 0.8} ${cy + 3} Q${cx + 14} ${cy + 3} ${cx + 20} ${cy + 3}`} stroke="#b00000" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+    <path d={`M${cx + r1 * 0.8} ${cy + 6} Q${cx + 14} ${cy + 9} ${cx + 20} ${cy + 13}`} stroke="#b00000" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+  </>
 );
 
-// ── Shared segmented progress bar ───────────────────────────────
-const SegBar = ({ p }) => (
-  <div style={{ display: "flex", gap: 2, marginTop: 16, width: "100%" }}>
-    {Array.from({ length: 12 }).map((_, i) => (
-      <div key={i} style={{
-        flex: 1, height: 2.5, borderRadius: 2,
-        background: (p / 100) * 12 > i ? "#b00000" : "#1a1a1a",
-        transition: "background 0.1s",
-        boxShadow: (p / 100) * 12 > i ? "0 0 4px rgba(176,0,0,0.5)" : "none",
-      }} />
-    ))}
-  </div>
-);
-
-// ── Box wrapper ──────────────────────────────────────────────────
-const Box = ({ children, label, n, onSelect }) => (
-  <div
-    onClick={() => onSelect?.(n)}
-    style={{
-      background: "rgba(17,17,17,0.8)",
-      border: "1px solid #1f1f1f",
-      borderRadius: 12,
-      padding: "20px 16px 16px",
-      display: "flex", flexDirection: "column",
-      alignItems: "center", gap: 0,
-      cursor: "pointer",
-      transition: "border-color 0.2s, transform 0.15s",
-      position: "relative",
-    }}
+const Box = ({ children, label, n }) => (
+  <div style={{
+    background: "rgba(17,17,17,0.7)",
+    border: "1px solid #1f1f1f",
+    borderRadius: 12,
+    padding: "14px 10px 10px",
+    display: "flex", flexDirection: "column",
+    alignItems: "center", gap: 8,
+    cursor: "pointer",
+    transition: "border-color 0.2s, transform 0.15s",
+    position: "relative",
+  }}
     onMouseEnter={e => { e.currentTarget.style.borderColor = "#b00000"; e.currentTarget.style.transform = "translateY(-2px)"; }}
     onMouseLeave={e => { e.currentTarget.style.borderColor = "#1f1f1f"; e.currentTarget.style.transform = "translateY(0)"; }}
   >
-    <span style={{
-      position: "absolute", top: 8, left: 10,
-      fontSize: 9, color: "#374151", fontFamily: "monospace",
-    }}>#{n}</span>
-    {children}
-    <p style={{ fontSize: 10, color: "#4b5563", margin: "8px 0 0", letterSpacing: "0.06em", textAlign: "center" }}>{label}</p>
+    <span style={{ position: "absolute", top: 7, left: 9, fontSize: 9, color: "#374151", fontFamily: "monospace" }}>#{String(n).padStart(2, "0")}</span>
+    <div style={{ width: 72, height: 72, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>{children}</div>
+    <p style={{ fontSize: 10, color: "#4b5563", margin: 0, letterSpacing: "0.06em", textAlign: "center" }}>{label}</p>
   </div>
 );
 
-// ── Main showcase ────────────────────────────────────────────────
+// 1. Spinning Web
+const A1 = () => (
+  <Box label="Spinning Web" n={1}>
+    <svg width="72" height="72" viewBox="0 0 72 72" style={{ animation: "spin 6s linear infinite" }}>
+      {[0, 60, 120, 180, 240, 300].map((a, i) => {
+        const r = (a * Math.PI) / 180;
+        return <line key={i} x1="36" y1="36" x2={36 + 32 * Math.cos(r)} y2={36 + 32 * Math.sin(r)} stroke="#b00000" strokeWidth=".8" opacity=".6" />;
+      })}
+      {[10, 18, 26].map((r, i) => {
+        const pts = [0, 60, 120, 180, 240, 300].map((a) => { const rd = (a * Math.PI) / 180; return `${36 + r * Math.cos(rd)},${36 + r * Math.sin(rd)}`; });
+        return <polygon key={i} points={pts.join(" ")} fill="none" stroke="#b00000" strokeWidth=".7" opacity={0.6 - i * 0.15} />;
+      })}
+      <Spider cx={36} cy={37} r1={5} r2={3.5} />
+    </svg>
+  </Box>
+);
+
+// 2. Silk Drop
+const A2 = () => (
+  <Box label="Silk Drop" n={2}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      <line x1="36" y1="0" x2="36" y2="36" stroke="#b00000" strokeWidth=".9" strokeDasharray="3,2" opacity=".35" />
+      <g style={{ transformOrigin: "36px 0px", animation: "drop 2.4s ease-in-out infinite" }}>
+        <ellipse cx="36" cy="40" rx="5" ry="6.5" fill="#b00000" />
+        <circle cx="36" cy="31.5" r="4" fill="#8b0000" />
+        <circle cx="34.2" cy="30.5" r="1.1" fill="white" />
+        <circle cx="37.8" cy="30.5" r="1.1" fill="white" />
+        {[[-1, 35, -7, -5], [-1, 38, -8, 0], [-1, 41, -7, 5], [-1, 44, -8, 10],
+          [1, 35, 7, -5], [1, 38, 8, 0], [1, 41, 7, 5], [1, 44, 8, 10]].map(([s, y, qx, qy], i) => (
+          <path key={i} d={`M${36 + s * 4} ${y} Q${36 + s * 12} ${y + qy} ${36 + s * 18} ${y + qy}`} stroke="#b00000" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+        ))}
+      </g>
+    </svg>
+  </Box>
+);
+
+// 3. Pulse Radar
+const A3 = () => (
+  <Box label="Pulse Radar" n={3}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      {[0, 0.6, 1.2].map((delay, i) => (
+        <circle key={i} cx="36" cy="36" fill="none" stroke="#b00000" strokeWidth={1.5 - i * 0.3}>
+          <animate attributeName="r" values="4;34" dur="1.8s" begin={`${delay}s`} repeatCount="indefinite" />
+          <animate attributeName="opacity" values={`${0.9 - i * 0.2};0`} dur="1.8s" begin={`${delay}s`} repeatCount="indefinite" />
+        </circle>
+      ))}
+      <Spider cx={36} cy={37} r1={4} r2={3} />
+    </svg>
+  </Box>
+);
+
+// 4. Orbit Spiders
+const A4 = () => (
+  <Box label="Orbit Spiders" n={4}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      <circle cx="36" cy="36" r="22" fill="none" stroke="#b00000" strokeWidth=".5" opacity=".25" />
+      <circle cx="36" cy="36" r="14" fill="none" stroke="#b00000" strokeWidth=".5" opacity=".2" />
+      <circle cx="36" cy="36" r="5" fill="#b00000" opacity=".8" />
+      <g style={{ transformOrigin: "36px 36px", animation: "spin 2s linear infinite" }}>
+        <circle cx="58" cy="36" r="4" fill="#b00000" />
+        <circle cx="56.5" cy="35" r="1" fill="white" />
+        <circle cx="59.5" cy="35" r="1" fill="white" />
+      </g>
+      <g style={{ transformOrigin: "36px 36px", animation: "spinR 3s linear infinite" }}>
+        <circle cx="21" cy="36" r="3" fill="#8b0000" opacity=".8" />
+      </g>
+      <g style={{ transformOrigin: "36px 36px", animation: "spin 4s linear infinite" }}>
+        <circle cx="36" cy="14" r="2.5" fill="#b00000" opacity=".6" />
+      </g>
+    </svg>
+  </Box>
+);
+
+// 5. Leg Wave
+const A5 = () => (
+  <Box label="Leg Wave" n={5}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      <ellipse cx="36" cy="40" rx="6" ry="7.5" fill="#b00000" />
+      <circle cx="36" cy="30" r="5" fill="#8b0000" />
+      <circle cx="34" cy="29" r="1.3" fill="white" />
+      <circle cx="38" cy="29" r="1.3" fill="white" />
+      {[[31, 36, "22 30 16 25", "0s"], [31, 39, "21 38 15 38", "0.1s"], [31, 42, "22 46 16 51", "0.2s"], [31, 45, "23 51 18 57", "0.3s"]].map(([x, y, q, d], i) => (
+        <path key={i} d={`M${x} ${y} Q${q}`} stroke="#b00000" strokeWidth="1.3" fill="none" strokeLinecap="round"
+          style={{ transformOrigin: `${x}px ${y}px`, animation: `legWave 0.5s ease-in-out ${d} infinite alternate` }} />
+      ))}
+      {[[41, 36, "50 30 56 25", "0.05s"], [41, 39, "51 38 57 38", "0.15s"], [41, 42, "50 46 56 51", "0.25s"], [41, 45, "49 51 54 57", "0.35s"]].map(([x, y, q, d], i) => (
+        <path key={i} d={`M${x} ${y} Q${q}`} stroke="#b00000" strokeWidth="1.3" fill="none" strokeLinecap="round"
+          style={{ transformOrigin: `${x}px ${y}px`, animation: `legWave 0.5s ease-in-out ${d} infinite alternate-reverse` }} />
+      ))}
+    </svg>
+  </Box>
+);
+
+// 6. Web Weave
+const A6 = () => (
+  <Box label="Web Weave" n={6}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      {[[36, 2, 36, 70], [2, 36, 70, 36], [8, 8, 64, 64], [64, 8, 8, 64]].map(([x1, y1, x2, y2], i) => (
+        <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#b00000" strokeWidth=".7" opacity=".3" />
+      ))}
+      {[["36,8 64,22 64,50 36,64 8,50 8,22", 200, 0], ["36,18 56,28 56,44 36,54 16,44 16,28", 160, 0.4], ["36,26 50,32 50,40 36,46 22,40 22,32", 100, 0.8]].map(([pts, dash, delay], i) => (
+        <polygon key={i} points={pts} fill="none" stroke="#b00000" strokeWidth="1" strokeDasharray={dash} opacity={0.7 - i * 0.15}>
+          <animate attributeName="stroke-dashoffset" values={`${dash};0;${dash}`} dur="3s" begin={`${delay}s`} repeatCount="indefinite" />
+        </polygon>
+      ))}
+      <circle cx="36" cy="36" r="4" fill="#b00000" />
+    </svg>
+  </Box>
+);
+
+// 7. Crawling
+const A7 = () => (
+  <Box label="Crawl" n={7}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      {[36, 20, 52].map((y, i) => <line key={i} x1="4" y1={y} x2="68" y2={y} stroke="#b00000" strokeWidth=".6" opacity=".2" />)}
+      <line x1="36" y1="4" x2="36" y2="68" stroke="#b00000" strokeWidth=".6" opacity=".2" />
+      <g style={{ animation: "crawl 2s ease-in-out infinite alternate" }}>
+        <Spider cx={36} cy={37} r1={5.5} r2={4} />
+      </g>
+    </svg>
+  </Box>
+);
+
+// 8. Dual Arc Spinner
+const A8 = () => (
+  <Box label="Arc Spinner" n={8}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      <circle cx="36" cy="36" r="30" fill="none" stroke="#b00000" strokeWidth="2" strokeDasharray="60 130" strokeLinecap="round" style={{ animation: "spin 1.2s linear infinite" }} />
+      <circle cx="36" cy="36" r="22" fill="none" stroke="#b00000" strokeWidth="1.5" strokeDasharray="40 100" strokeLinecap="round" opacity=".6" style={{ animation: "spinR 1.8s linear infinite" }} />
+      <circle cx="36" cy="36" r="14" fill="none" stroke="#b00000" strokeWidth="1" strokeDasharray="25 64" strokeLinecap="round" opacity=".4" style={{ animation: "spin 2.4s linear infinite" }} />
+      <Spider cx={36} cy={37} r1={4} r2={3} />
+    </svg>
+  </Box>
+);
+
+// 9. Dot Trail
+const A9 = () => (
+  <Box label="Dot Trail" n={9}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      <g style={{ transformOrigin: "36px 36px", animation: "spin 1.6s linear infinite" }}>
+        {[[62, 36, 5, 1], [56, 20, 4, .7], [44, 10, 3, .5], [36, 6, 2.5, .35], [22, 8, 2, .2], [12, 18, 1.5, .1]].map(([x, y, r, o], i) => (
+          <circle key={i} cx={x} cy={y} r={r} fill="#b00000" opacity={o} />
+        ))}
+      </g>
+      <Spider cx={36} cy={37} r1={4.5} r2={3.5} />
+    </svg>
+  </Box>
+);
+
+// 10. Web Builder
+const A10 = () => (
+  <Box label="Web Builder" n={10}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      {[[36, 4, 36, 68], [4, 36, 68, 36], [10, 10, 62, 62], [62, 10, 10, 62]].map(([x1, y1, x2, y2], i) => (
+        <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#b00000" strokeWidth=".7" opacity=".3" />
+      ))}
+      {[[28, 176, 0], [20, 126, 0.3], [12, 76, 0.6]].map(([r, dash, delay], i) => (
+        <circle key={i} cx="36" cy="36" r={r} fill="none" stroke="#b00000" strokeWidth={1.1 - i * 0.1} strokeDasharray={dash} strokeLinecap="round" opacity={0.7 - i * 0.15}>
+          <animate attributeName="stroke-dashoffset" values={`${dash};0`} dur="1.4s" begin={`${delay}s`} repeatCount="indefinite" />
+        </circle>
+      ))}
+      <circle cx="36" cy="36" r="4.5" fill="#b00000" />
+    </svg>
+  </Box>
+);
+
+// 11. Pendulum Swing
+const A11 = () => (
+  <Box label="Pendulum Swing" n={11}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      <line x1="36" y1="0" x2="36" y2="10" stroke="#b00000" strokeWidth=".9" opacity=".5" />
+      <g style={{ transformOrigin: "36px 10px", animation: "swing 1.8s ease-in-out infinite" }}>
+        <line x1="36" y1="10" x2="36" y2="30" stroke="#b00000" strokeWidth=".9" strokeDasharray="3,2" opacity=".4" />
+        <Spider cx={36} cy={40} r1={5.5} r2={4} />
+      </g>
+    </svg>
+  </Box>
+);
+
+// 12. Heartbeat Web
+const A12 = () => (
+  <Box label="Heartbeat Web" n={12}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      {[0, 60, 120, 180, 240, 300].map((a, i) => {
+        const r = (a * Math.PI) / 180;
+        return <line key={i} x1="36" y1="36" x2={36 + 32 * Math.cos(r)} y2={36 + 32 * Math.sin(r)} stroke="#b00000" strokeWidth=".8" opacity=".4" />;
+      })}
+      {[["36,10 60,23 60,49 36,62 12,49 12,23", .5], ["36,18 54,27 54,45 36,54 18,45 18,27", .4], ["36,25 48,31 48,41 36,47 24,41 24,31", .3]].map(([pts, o], i) => (
+        <polygon key={i} points={pts} fill="none" stroke="#b00000" strokeWidth=".9" opacity={o} />
+      ))}
+      <circle cx="36" cy="36" r="5" fill="#b00000">
+        <animate attributeName="r" values="5;8;5" dur="1s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="1;0.5;1" dur="1s" repeatCount="indefinite" />
+      </circle>
+      <circle cx="36" cy="36" r="2" fill="white" />
+    </svg>
+  </Box>
+);
+
+// 13. Morph Body
+const A13 = () => (
+  <Box label="Morph Body" n={13}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      <ellipse cx="36" cy="40" rx="6" ry="8" fill="#b00000">
+        <animate attributeName="rx" values="6;9;6" dur="1.2s" repeatCount="indefinite" />
+        <animate attributeName="ry" values="8;5;8" dur="1.2s" repeatCount="indefinite" />
+      </ellipse>
+      <circle cx="36" cy="30" r="5" fill="#8b0000">
+        <animate attributeName="r" values="5;6.5;5" dur="1.2s" repeatCount="indefinite" />
+      </circle>
+      <circle cx="34.2" cy="29" r="1.2" fill="white" />
+      <circle cx="37.8" cy="29" r="1.2" fill="white" />
+      {[[31, 35, "22 29 16 24"], [31, 38, "21 37 15 37"], [31, 41, "22 45 16 49"], [31, 44, "23 50 18 55"]].map(([x, y, q], i) => (
+        <path key={i} d={`M${x} ${y} Q${q}`} stroke="#b00000" strokeWidth="1.2" fill="none" strokeLinecap="round"
+          style={{ transformOrigin: `${x}px ${y}px`, animation: `legWave 0.6s ease-in-out ${i * 0.1}s infinite alternate` }} />
+      ))}
+      {[[41, 35, "50 29 56 24"], [41, 38, "51 37 57 37"], [41, 41, "50 45 56 49"], [41, 44, "49 50 54 55"]].map(([x, y, q], i) => (
+        <path key={i} d={`M${x} ${y} Q${q}`} stroke="#b00000" strokeWidth="1.2" fill="none" strokeLinecap="round"
+          style={{ transformOrigin: `${x}px ${y}px`, animation: `legWave 0.6s ease-in-out ${i * 0.1}s infinite alternate-reverse` }} />
+      ))}
+    </svg>
+  </Box>
+);
+
+// 14. Shockwave
+const A14 = () => (
+  <Box label="Shockwave" n={14}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      {[0, 0.5, 1, 1.5].map((delay, i) => (
+        <circle key={i} cx="36" cy="36" fill="none" stroke="#b00000" strokeWidth={1.5 - i * 0.2}>
+          <animate attributeName="r" values="0;34" dur="2s" begin={`${delay}s`} repeatCount="indefinite" />
+          <animate attributeName="opacity" values={`${0.9 - i * 0.2};0`} dur="2s" begin={`${delay}s`} repeatCount="indefinite" />
+        </circle>
+      ))}
+      <Spider cx={36} cy={37} r1={4.5} r2={3.5} />
+    </svg>
+  </Box>
+);
+
+// 15. Bouncing
+const A15 = () => (
+  <Box label="Bouncing" n={15}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      <line x1="36" y1="0" x2="36" y2="14" stroke="#b00000" strokeWidth=".8" strokeDasharray="3,2" opacity=".35" />
+      <ellipse cx="36" cy="66" rx="10" ry="2.5" fill="#b00000" opacity=".15">
+        <animate attributeName="rx" values="10;5;10" dur="1.2s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values=".2;.05;.2" dur="1.2s" repeatCount="indefinite" />
+      </ellipse>
+      <g style={{ animation: "bob 1.2s ease-in-out infinite" }}>
+        <line x1="36" y1="0" x2="36" y2="22" stroke="#b00000" strokeWidth=".8" strokeDasharray="3,2" opacity=".3" />
+        <Spider cx={36} cy={33} r1={5.5} r2={4} />
+      </g>
+    </svg>
+  </Box>
+);
+
+// 16. Eye Blink
+const A16 = () => (
+  <Box label="Eye Blink" n={16}>
+    <svg width="72" height="72" viewBox="0 0 72 72">
+      {[[36, 4, 36, 68], [4, 36, 68, 36], [10, 10, 62, 62], [62, 10, 10, 62]].map(([x1, y1, x2, y2], i) => (
+        <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#b00000" strokeWidth=".5" opacity=".18" />
+      ))}
+      <circle cx="36" cy="36" r="24" fill="none" stroke="#b00000" strokeWidth=".6" opacity=".2" />
+      <ellipse cx="36" cy="41" rx="10" ry="12" fill="#b00000" />
+      <circle cx="36" cy="26" r="8" fill="#8b0000" />
+      <circle cx="32" cy="25" r="2.8" fill="white" />
+      <circle cx="40" cy="25" r="2.8" fill="white" />
+      <ellipse cx="32" cy="25" rx="1.4" ry="1.4" fill="#1a0000">
+        <animate attributeName="ry" values="1.4;0.1;1.4" dur="3s" repeatCount="indefinite" />
+      </ellipse>
+      <ellipse cx="40" cy="25" rx="1.4" ry="1.4" fill="#1a0000">
+        <animate attributeName="ry" values="1.4;0.1;1.4" dur="3s" repeatCount="indefinite" />
+      </ellipse>
+      {[[27, 36, "18 31 12 26"], [27, 40, "17 39 11 39"], [27, 44, "18 48 12 52"],
+        [45, 36, "54 31 60 26"], [45, 40, "55 39 61 39"], [45, 44, "54 48 60 52"]].map(([x, y, q], i) => (
+        <path key={i} d={`M${x} ${y} Q${q}`} stroke="#b00000" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+      ))}
+    </svg>
+  </Box>
+);
+
 const Animation = ({ onDone }) => {
   const [selected, setSelected] = useState(null);
 
-  const handleSelect = (n) => {
-    setSelected(n);
-    setTimeout(() => onDone?.(), 2000);
-  };
+  const pick = (n) => { setSelected(n); setTimeout(() => onDone?.(), 2500); };
 
   return (
     <div style={{
@@ -490,87 +338,35 @@ const Animation = ({ onDone }) => {
       background: "#050505",
       display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center",
-      padding: "24px 20px",
-      overflowY: "auto",
+      padding: "20px", overflowY: "auto",
     }}>
-
-      {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: 28 }}>
+      <div style={{ textAlign: "center", marginBottom: 20 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 4px", letterSpacing: "-0.02em" }}>
-          <span style={{ color: "#fff" }}>SMART</span>
-          <span style={{ color: "#b00000" }}>SPIDER</span>
+          <span style={{ color: "#fff" }}>SMART</span><span style={{ color: "#b00000" }}>SPIDER</span>
         </h1>
-        <p style={{ fontSize: 10, color: "#374151", margin: 0, letterSpacing: "0.1em" }}>
-          CHOOSE YOUR LOADING STYLE
-        </p>
+        <p style={{ fontSize: 10, color: "#4b5563", margin: 0, letterSpacing: "0.1em" }}>CHOOSE LOADING ANIMATION</p>
       </div>
 
-      {/* 3×3 Grid */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 160px)",
-        gap: 12,
-      }}>
-        <Anim1 />
-        <Anim2 />
-        <Anim3 />
-        <Anim4 />
-        <Anim5 />
-        <Anim6 />
-        <Anim7 />
-        <Anim8 />
-        <Anim9 />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 148px)", gap: 10 }}>
+        {[A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,A16].map((Comp, i) => (
+          <div key={i} onClick={() => pick(i + 1)}><Comp /></div>
+        ))}
       </div>
 
       {selected && (
-        <p style={{ marginTop: 20, fontSize: 11, color: "#b00000", letterSpacing: "0.06em" }}>
-          Animation #{selected} selected — loading...
+        <p style={{ marginTop: 16, fontSize: 11, color: "#b00000", letterSpacing: "0.06em" }}>
+          Animation #{String(selected).padStart(2,"0")} selected — loading...
         </p>
       )}
 
       <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); } to { transform: rotate(360deg); }
-        }
-        @keyframes spinReverse {
-          from { transform: rotate(360deg); } to { transform: rotate(0deg); }
-        }
-        @keyframes ping {
-          0%   { transform: scale(0.85); opacity: 0.6; }
-          70%  { transform: scale(1.5);  opacity: 0; }
-          100% { transform: scale(1.5);  opacity: 0; }
-        }
-        @keyframes dotBounce {
-          0%, 100% { transform: translateY(0);    opacity: 0.4; }
-          50%       { transform: translateY(-18px); opacity: 1; }
-        }
-        @keyframes pulseRing {
-          0%, 100% { transform: translate(-50%, -50%) scale(1);   opacity: 0.8; }
-          50%       { transform: translate(-50%, -50%) scale(1.12); opacity: 0.4; }
-        }
-        @keyframes eqBar {
-          from { height: 6px;  }
-          to   { height: 38px; }
-        }
-        @keyframes orbit1 {
-          from { transform: rotate(0deg)   translateX(28px); }
-          to   { transform: rotate(360deg) translateX(28px); }
-        }
-        @keyframes orbit2 {
-          from { transform: rotate(120deg) translateX(22px); }
-          to   { transform: rotate(480deg) translateX(22px); }
-        }
-        @keyframes orbit3 {
-          from { transform: rotate(240deg) translateX(18px); }
-          to   { transform: rotate(600deg) translateX(18px); }
-        }
-        @keyframes hexPulse {
-          0%, 100% { background: rgba(176,0,0,0.06); border-color: rgba(176,0,0,0.25); }
-          50%       { background: rgba(176,0,0,0.25); border-color: rgba(176,0,0,0.7);  }
-        }
-        @keyframes blink {
-          0%, 100% { opacity: 1; } 50% { opacity: 0; }
-        }
+        @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+        @keyframes spinR { from{transform:rotate(360deg)} to{transform:rotate(0)} }
+        @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+        @keyframes crawl { 0%{transform:translateX(-28px)} 100%{transform:translateX(28px)} }
+        @keyframes swing { 0%,100%{transform:rotate(-25deg)} 50%{transform:rotate(25deg)} }
+        @keyframes legWave { 0%{transform:rotate(0deg)} 100%{transform:rotate(18deg)} }
+        @keyframes drop { 0%,100%{transform:translateY(0)} 45%,55%{transform:translateY(30px)} }
       `}</style>
     </div>
   );

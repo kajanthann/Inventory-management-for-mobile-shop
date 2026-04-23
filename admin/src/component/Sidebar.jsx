@@ -1,8 +1,9 @@
 import React, { useContext } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/slogo.png";
 import logo1 from "../assets/slogo1.png";
 import { AppContext } from "../context/AppContext";
+import toast from "react-hot-toast";
 
 import {
   FaTachometerAlt,
@@ -17,7 +18,14 @@ import {
 } from "react-icons/fa";
 
 const Sidebar = () => {
-  const { theme, toggleTheme } = useContext(AppContext);
+  const {
+    theme,
+    toggleTheme,
+    setAtoken,
+    axiosInstance,
+  } = useContext(AppContext);
+
+  const navigate = useNavigate();
 
   const menu = [
     { name: "Dashboard", icon: <FaTachometerAlt />, path: "/dashboard" },
@@ -27,27 +35,102 @@ const Sidebar = () => {
     { name: "Animation", icon: <FaTools />, path: "/animation" },
   ];
 
+  // ==========================
+  // REAL LOGOUT
+  // ==========================
+  const performLogout = async () => {
+    const toastId = toast.loading("Logging out...");
+
+    try {
+      await axiosInstance.post("/api/admin/logout");
+
+      localStorage.removeItem("aToken");
+      setAtoken("");
+
+      toast.dismiss(toastId);
+      toast.success("Logged out successfully");
+
+      navigate("/login");
+    } catch (error) {
+      toast.dismiss(toastId);
+      toast.error("Logout failed");
+    }
+  };
+
+  // ==========================
+  // CONFIRM TOAST (THEME SAFE)
+  // ==========================
+  const handleLogout = () => {
+    toast.custom(
+      (t) => (
+        <div
+          className={`p-4 rounded-lg shadow-lg border w-[300px] transition-all
+            ${
+              theme === "dark"
+                ? "bg-[#1a1a1a] border-[#2a2a2a] text-white"
+                : "bg-white border-gray-200 text-black"
+            }`}
+        >
+          <p className="text-sm mb-3 font-medium">
+            Are you sure you want to logout?
+          </p>
+
+          <div className="flex justify-end gap-2">
+            {/* Cancel */}
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className={`px-3 py-1 text-xs rounded transition
+                ${
+                  theme === "dark"
+                    ? "bg-gray-600 hover:bg-gray-500 text-white"
+                    : "bg-gray-200 hover:bg-gray-300 text-black"
+                }`}
+            >
+              Cancel
+            </button>
+
+            {/* Logout */}
+            <button
+              onClick={() => {
+                toast.dismiss(t.id);
+                performLogout();
+              }}
+              className="px-3 py-1 text-xs rounded bg-red-600 hover:bg-red-500 text-white transition"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 6000 }
+    );
+  };
+
   return (
-    <div className="h-screen flex flex-col w-16 sm:w-52
+    <div
+      className="h-screen flex flex-col w-16 sm:w-52
       bg-white dark:bg-[#1a1a1a]
       border-r border-gray-200 dark:border-[#2a2a2a]
-      transition-colors duration-300">
-
+      transition-colors duration-300"
+    >
       {/* LOGO */}
       <div className="p-2 border-b border-gray-200 dark:border-[#2a2a2a]">
         <div className="flex items-center gap-3">
-          <img src={theme === "dark" ? logo1 : logo} alt="logo" className={`${theme === "dark" ? "pl-2 h-10 w-auto" : "h-14 w-35"}`} />
-
+          <img
+            src={theme === "dark" ? logo1 : logo}
+            alt="logo"
+            className={`${theme === "dark" ? "pl-2 h-10 w-auto" : "h-14 w-35"}`}
+          />
 
           {theme === "dark" && (
             <div className="hidden sm:block leading-tight">
-            <p className="chrome-text text-xl font-extrabold tracking-wider">
-              SMART
-            </p>
-            <p className="text-red-500 font-bold text-lg -mt-2">
-              SPIDER
-            </p>
-          </div>
+              <p className="text-xl font-extrabold tracking-wider text-white">
+                SMART
+              </p>
+              <p className="text-red-500 font-bold text-lg -mt-2">
+                SPIDER
+              </p>
+            </div>
           )}
         </div>
 
@@ -79,11 +162,11 @@ const Sidebar = () => {
         ))}
       </div>
 
-      {/* THEME TOGGLE */}
+      {/* THEME */}
       <div className="px-3 mb-3 hidden sm:block">
         <button
           onClick={toggleTheme}
-          className="w-full flex cursor-pointer items-center justify-center gap-2 px-3 py-2 rounded-md
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md
           border border-gray-300 dark:border-gray-600
           text-gray-600 dark:text-gray-300
           hover:bg-gray-100 dark:hover:bg-[#222] transition"
@@ -114,14 +197,14 @@ const Sidebar = () => {
 
           <NavLink
             to="/inventory"
-            className="text-xs cursor-pointer text-[#E61919] font-medium hover:underline"
+            className="text-xs text-[#E61919] font-medium hover:underline"
           >
             View items →
           </NavLink>
         </div>
       </div>
 
-      {/* PROFILE */}
+      {/* PROFILE + LOGOUT */}
       <div className="mt-auto px-3 py-3 border-t border-gray-200 dark:border-[#2a2a2a]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -137,12 +220,14 @@ const Sidebar = () => {
             </div>
           </div>
 
-          <button className="hidden sm:block cursor-pointer text-gray-500 dark:text-gray-400 hover:text-red-500 transition">
+          <button
+            onClick={handleLogout}
+            className="hidden sm:block cursor-pointer text-gray-500 dark:text-gray-400 hover:text-red-500 transition"
+          >
             <FaSignOutAlt />
           </button>
         </div>
       </div>
-
     </div>
   );
 };

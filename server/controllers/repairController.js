@@ -1,19 +1,57 @@
 import repairModel from "../models/repair.js";
 
 
-// CREATE repair
+// ✅ CREATE REPAIR
 export const createRepair = async (req, res) => {
   try {
-    const { device, imei, phone, fault, price } = req.body;
+    const {
+      collectionNo,
+      name,
+      tel1,
+      tel2,
+      brand,
+      model,
+      imei,
+      purchaseDate,
+      warranty,
+      faultDescription,
+      handover,
+      date,
+    } = req.body;
 
-    if (!device || !imei || !phone || !fault) {
+    // ✅ validation (match schema)
+    if (
+      !collectionNo ||
+      !name ||
+      !tel1 ||
+      !brand ||
+      !model ||
+      !imei ||
+      !faultDescription ||
+      !date
+    ) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required",
+        message: "Required fields are missing",
       });
     }
 
-    const repair = await repairModel.create(req.body);
+    const repair = await repairModel.create({
+      collectionNo,
+      name,
+      tel1,
+      tel2,
+      brand,
+      model,
+      imei,
+      purchaseDate,
+      warranty,
+      faultDescription,
+      handover,
+      date,
+      status: "pending",
+      price: null,
+    });
 
     res.status(201).json({
       success: true,
@@ -27,12 +65,12 @@ export const createRepair = async (req, res) => {
   }
 };
 
-// GET all repairs
+
+
+// ✅ GET ALL REPAIRS
 export const getRepairs = async (req, res) => {
   try {
-    const repairs = await repairModel
-      .find()
-      .sort({ createdAt: -1 });
+    const repairs = await repairModel.find().sort({ createdAt: -1 });
 
     res.json({
       success: true,
@@ -46,12 +84,30 @@ export const getRepairs = async (req, res) => {
   }
 };
 
-// UPDATE repair
+
+
+// ✅ UPDATE REPAIR
 export const updateRepair = async (req, res) => {
   try {
+    const { status, price } = req.body;
+
+    const updateData = {
+      status,
+    };
+
+    // only save price if done
+    if (status === "done") {
+      updateData.price = price || 0;
+    }
+
+    // if returned → no price
+    if (status === "returned") {
+      updateData.price = null;
+    }
+
     const repair = await repairModel.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true }
     );
 
@@ -74,7 +130,9 @@ export const updateRepair = async (req, res) => {
   }
 };
 
-// DELETE repair
+
+
+// ✅ DELETE REPAIR
 export const deleteRepair = async (req, res) => {
   try {
     const repair = await repairModel.findByIdAndDelete(req.params.id);

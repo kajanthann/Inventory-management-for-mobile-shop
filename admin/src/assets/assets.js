@@ -1,3 +1,3 @@
-import logo from "./slogo .png";
+import logo from "./slogo1.png";
 
-export { logo };
+export const assets = { logo };

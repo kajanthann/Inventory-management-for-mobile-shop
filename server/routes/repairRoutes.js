@@ -8,8 +8,8 @@ import {
 
 const repairRouter = express.Router();
 
-repairRouter.post("/add", createRepair);
-repairRouter.get("/all", getRepairs);
+repairRouter.post("/create", createRepair);
+repairRouter.get("/", getRepairs);
 repairRouter.put("/:id", updateRepair);
 repairRouter.delete("/:id", deleteRepair);
 

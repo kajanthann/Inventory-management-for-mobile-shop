@@ -1,13 +1,18 @@
+import mongoose from "mongoose";
 import productModel from "../models/product.js";
 
+// =====================
+// ADD PRODUCT
+// =====================
 export const addProduct = async (req, res) => {
   try {
     const { name, imei, price, cost, qty, description, category } = req.body;
 
-    if (!name || !imei || !price || !cost || !qty || !category) {
+    // ✅ SAFE VALIDATION
+    if (!name || !imei || price == null || cost == null || qty == null || !category) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required",
+        message: "All required fields must be filled",
       });
     }
 
@@ -16,7 +21,7 @@ export const addProduct = async (req, res) => {
     if (existingProduct) {
       return res.status(400).json({
         success: false,
-        message: "This IMEI product already exists",
+        message: "This IMEI already exists",
       });
     }
 
@@ -37,7 +42,19 @@ export const addProduct = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+
+    // ✅ HANDLE DUPLICATE ERROR
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "IMEI already exists",
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
@@ -49,10 +66,20 @@ export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // ✅ ID VALIDATION
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product ID",
+      });
+    }
+
+    const { name, imei, price, cost, qty, description, category } = req.body;
+
     const updatedProduct = await productModel.findByIdAndUpdate(
       id,
-      req.body,
-      { new: true } // return updated data
+      { name, imei, price, cost, qty, description, category },
+      { new: true, runValidators: true }
     );
 
     if (!updatedProduct) {
@@ -69,7 +96,18 @@ export const updateProduct = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "IMEI already exists",
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
@@ -80,6 +118,14 @@ export const updateProduct = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // ✅ ID VALIDATION
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product ID",
+      });
+    }
 
     const deletedProduct = await productModel.findByIdAndDelete(id);
 
@@ -96,13 +142,16 @@ export const deleteProduct = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
 
 // =====================
-// GET ALL PRODUCTS (OPTIONAL BUT USEFUL)
+// GET ALL PRODUCTS
 // =====================
 export const getProducts = async (req, res) => {
   try {
@@ -114,17 +163,28 @@ export const getProducts = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
 
 // =====================
-// GET SINGLE PRODUCT (OPTIONAL)
+// GET SINGLE PRODUCT
 // =====================
 export const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // ✅ ID VALIDATION
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product ID",
+      });
+    }
 
     const product = await productModel.findById(id);
 
@@ -141,6 +201,9 @@ export const getProductById = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };

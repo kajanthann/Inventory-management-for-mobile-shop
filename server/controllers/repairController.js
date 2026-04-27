@@ -108,7 +108,7 @@ export const updateRepair = async (req, res) => {
     const repair = await repairModel.findByIdAndUpdate(
       req.params.id,
       updateData,
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (!repair) {

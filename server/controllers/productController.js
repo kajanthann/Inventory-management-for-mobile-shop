@@ -79,7 +79,7 @@ export const updateProduct = async (req, res) => {
     const updatedProduct = await productModel.findByIdAndUpdate(
       id,
       { name, imei, price, cost, qty, description, category },
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     );
 
     if (!updatedProduct) {

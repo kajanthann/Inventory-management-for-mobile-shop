@@ -31,7 +31,7 @@ const Sidebar = () => {
     { name: "Inventory", icon: <FaBoxes />, path: "/inventory" },
     { name: "Sales", icon: <FaShoppingCart />, path: "/sales" },
     { name: "Repair", icon: <FaTools />, path: "/repair" },
-    { name: "Animation", icon: <FaTools />, path: "/animation" },
+    { name: "Bills", icon: <FaTools />, path: "/bill" },
   ];
 
   // ==========================
@@ -164,7 +164,7 @@ const Sidebar = () => {
               `flex items-center gap-3 px-4 py-3 mx-2 rounded-md
               ${
                 isActive
-                  ? "bg-gray-200 dark:bg-[#2a2a2a] text-black dark:text-white"
+                  ? "bg-gray-200 dark:bg-[#2a2a2a] text-black dark:text-white border-l-4 border-red-500"
                   : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#222]"
               }`
             }
@@ -176,13 +176,13 @@ const Sidebar = () => {
       </div>
 
       {/* THEME */}
-      <div className="px-3 mb-3 hidden sm:block">
+      <div className="px-3 mb-3">
         <button
           onClick={toggleTheme}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md
           border border-gray-300 dark:border-gray-600">
           {theme === "dark" ? <FaSun /> : <FaMoon />}
-          <span className="text-xs">
+          <span className="text-xs hidden lg:block">
             {theme === "dark" ? "Light Mode" : "Dark Mode"}
           </span>
         </button>
@@ -216,12 +216,12 @@ const Sidebar = () => {
       )}
 
       {/* PROFILE */}
-      <div className="mt-auto px-3 py-3 border-t border-gray-200 dark:border-[#2a2a2a]">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <div className="mt-auto p-4 lg:p-3 border-t border-gray-200 dark:border-[#2a2a2a]">
+        <div className="flex items-center justify-center lg:justify-between">
+          <div className="hidden md:flex items-center gap-3">
             <FaUserCircle className="text-3xl text-gray-500" />
 
-            <div className="hidden sm:block">
+            <div className="">
               <p className="text-xs font-medium">Admin</p>
               <p className="text-[10px] text-gray-500">
                 admin@mobistock.com
@@ -231,7 +231,7 @@ const Sidebar = () => {
 
           <button
             onClick={handleLogout}
-            className="hidden sm:block text-gray-500 hover:text-red-500"
+            className="text-gray-500 hover:text-red-500"
           >
             <FaSignOutAlt />
           </button>
@@ -242,3 +242,4 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+

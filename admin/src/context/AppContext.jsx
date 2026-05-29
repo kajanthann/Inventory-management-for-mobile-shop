@@ -20,7 +20,7 @@ const AppContextProvider = ({ children }) => {
     localStorage.getItem("theme") || "dark"
   );
 
-  const backendUrl = "http://localhost:5000";
+  const backendUrl = import.meta.env.VITE_BACKEND_UR;
 
   // ✅ MEMOIZED AXIOS
   const axiosInstance = useMemo(() => {

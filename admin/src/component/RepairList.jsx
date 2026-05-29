@@ -394,7 +394,7 @@ const handleReturn = () => {
               <button
                 type="button"
                 onClick={() => setPriceModal(null)}
-                className="w-full text-center text-xs text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white transition"
+                className="w-full text-center text-xs bg-gray-100 rounded-lg p-2 text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white transition"
               >
                 Cancel
               </button>

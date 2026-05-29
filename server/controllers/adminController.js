@@ -4,6 +4,7 @@ import Admin from "../models/Admin.js";
 import saleModel   from "../models/Sale.js";
 import productModel from "../models/product.js";
 import repairModel  from "../models/repair.js";
+import { getOtpEmailTemplate } from "../utils/emailTemplates.js";
 
 
 // ======================
@@ -47,7 +48,7 @@ export const adminLogin = async (req, res) => {
     await sendEmail(
       email,
       "Admin OTP Login",
-      `Your OTP is ${otp}. It expires in 1 minute.`
+      getOtpEmailTemplate(otp)
     );
 
     return res.json({

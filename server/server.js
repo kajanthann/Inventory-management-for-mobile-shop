@@ -13,9 +13,11 @@ import cookieParser from "cookie-parser";
 dotenv.config();
 connectDB();
 
+const frontendUrl = import.meta.env.VITE_FRONTEND_URL;
+
 const app = express();
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: frontendUrl,
   credentials: true,
 }));
 app.use(express.json());

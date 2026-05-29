@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const sendEmail = async (to, subject, text) => {
+const sendEmail = async (to, subject, html) => {
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
@@ -12,10 +12,10 @@ const sendEmail = async (to, subject, text) => {
   });
 
   await transporter.sendMail({
-    from: process.env.EMAIL_SENDER,
+    from: `"SmartSpider System" <${process.env.EMAIL_SENDER}>`,
     to,
     subject,
-    text,
+    html,   
   });
 };
 

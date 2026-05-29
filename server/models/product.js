@@ -42,7 +42,6 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ✅ FIXED (important)
 const productModel =
   mongoose.models.product || mongoose.model("product", productSchema);
 

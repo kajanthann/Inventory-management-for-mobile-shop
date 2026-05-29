@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { Toaster } from "react-hot-toast";
 import { Route, Routes, Navigate } from "react-router-dom";
 
-import Sidebar from "./component/SideBar";
+import SideBar from "./component/SideBar";
 import Login from "./component/Login";
 import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
@@ -53,7 +53,7 @@ const AppLayout = () => {
     <div className="flex h-screen bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-white">
 
       {/* Sidebar */}
-      <Sidebar />
+      <SideBar />
 
       {/* Main */}
       <div className="flex-1 bg-gray-50 dark:bg-[#0f0f0f] p-6 overflow-auto relative">

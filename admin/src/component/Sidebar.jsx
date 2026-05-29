@@ -17,7 +17,7 @@ import {
   FaSun,
 } from "react-icons/fa";
 
-const Sidebar = () => {
+const SideBar = () => {
   const { theme, toggleTheme, setAtoken, axiosInstance } =
     useContext(AppContext);
 
@@ -241,5 +241,5 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar;
+export default SideBar;
 

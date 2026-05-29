@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { Toaster } from "react-hot-toast";
 import { Route, Routes, Navigate } from "react-router-dom";
 
-import SideBar from "./component/SideBar";
+import SideBar from "./component/Sidebar";
 import Login from "./component/Login";
 import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";

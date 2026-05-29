@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import sendEmail from "../middleware/sendEmail.js";
-import Admin from "../models/Admin.js";
+import Admin from "../models/admin.js";
 import saleModel   from "../models/Sale.js";
 import productModel from "../models/product.js";
 import repairModel  from "../models/repair.js";

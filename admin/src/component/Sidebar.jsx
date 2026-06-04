@@ -15,6 +15,7 @@ import {
   FaExclamationTriangle,
   FaMoon,
   FaSun,
+  FaDatabase,
 } from "react-icons/fa";
 
 const SideBar = () => {
@@ -32,12 +33,9 @@ const SideBar = () => {
     { name: "Inventory", icon: <FaBoxes />, path: "/inventory" },
     { name: "Sales", icon: <FaShoppingCart />, path: "/sales" },
     { name: "Repair", icon: <FaTools />, path: "/repair" },
-    { name: "Bills", icon: <FaTools />, path: "/bill" },
   ];
 
-  // ==========================
   // FETCH LOW STOCK
-  // ==========================
   const fetchLowStock = async () => {
     try {
       const { data } = await axiosInstance.get("/api/products/all");
@@ -54,13 +52,13 @@ const SideBar = () => {
   };
 
   const fetchDbStats = async () => {
-  try {
-    const { data } = await axiosInstance.get("/api/db/stats");
-    setDbStats(data);
-  } catch (err) {
-    console.log("DB stats fetch error:", err);
-  }
-};
+    try {
+      const { data } = await axiosInstance.get("/api/db/stats");
+      setDbStats(data);
+    } catch (err) {
+      console.log("DB stats fetch error:", err);
+    }
+  };
 
   useEffect(() => {
     fetchLowStock();
@@ -132,15 +130,16 @@ const SideBar = () => {
           </div>
         </div>
       ),
-      { duration: 6000 }
+      { duration: 6000 },
     );
   };
 
   return (
-    <div className="h-screen flex flex-col w-16 sm:w-52
+    <div
+      className="h-screen flex flex-col w-16 sm:w-52
       bg-white dark:bg-[#1a1a1a]
-      border-r border-gray-200 dark:border-[#2a2a2a]">
-
+      border-r border-gray-200 dark:border-[#2a2a2a]"
+    >
       {/* LOGO */}
       <div className="p-2 border-b border-gray-200 dark:border-[#2a2a2a]">
         <div className="flex items-center gap-3">
@@ -153,9 +152,7 @@ const SideBar = () => {
           {theme === "dark" && (
             <div className="hidden sm:block">
               <p className="text-xl font-extrabold text-white">SMART</p>
-              <p className="text-red-500 font-bold text-lg -mt-2">
-                SPIDER
-              </p>
+              <p className="text-red-500 font-bold text-lg -mt-2">SPIDER</p>
             </div>
           )}
         </div>
@@ -186,57 +183,44 @@ const SideBar = () => {
         ))}
       </div>
 
-      {/* THEME */}
-      <div className="px-3 mb-3">
-        <button
-          onClick={toggleTheme}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md
-          border border-gray-300 dark:border-gray-600">
-          {theme === "dark" ? <FaSun /> : <FaMoon />}
-          <span className="text-xs hidden lg:block">
-            {theme === "dark" ? "Light Mode" : "Dark Mode"}
-          </span>
-        </button>
-      </div>
+      
 
       {/* DB STORAGE STATUS */}
-{dbStats && (
-  <div className="px-3 mb-3 hidden sm:block">
-    <div className="p-3 rounded-md border bg-blue-50 dark:bg-[#111] border-blue-200 dark:border-[#2a2a2a]">
+      {dbStats && (
+        <div className="px-3 mb-3 hidden sm:block">
+          <div className="p-3 rounded-md border bg-blue-50 dark:bg-black border-blue-200 dark:border-[#2a2a2a]">
+            <p className="text-xs flex items-center gap-2 font-semibold mb-2 text-blue-600 dark:text-blue-400">
+             <FaDatabase /> DB Storage Usage
+            </p>
 
-      <p className="text-xs font-semibold mb-2 text-blue-600 dark:text-blue-400">
-        DB Storage Usage
-      </p>
+            {/* Progress Bar */}
+            <div className="w-full h-2 bg-gray-200 dark:bg-gray-500 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${
+                  dbStats.usagePercent < 60
+                    ? "bg-green-500"
+                    : dbStats.usagePercent < 80
+                      ? "bg-yellow-500"
+                      : "bg-red-500"
+                }`}
+                style={{ width: `${dbStats.usagePercent}%` }}
+              />
+            </div>
 
-      {/* Progress Bar */}
-      <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-        <div
-          className={`h-full ${
-            dbStats.usagePercent < 60
-              ? "bg-green-500"
-              : dbStats.usagePercent < 80
-              ? "bg-yellow-500"
-              : "bg-red-500"
-          }`}
-          style={{ width: `${dbStats.usagePercent}%` }}
-        />
-      </div>
-
-      {/* Text Info */}
-      <div className="mt-2 text-[10px] text-gray-600 dark:text-gray-300">
-        {dbStats.storageSizeMB} MB / {dbStats.limitMB} MB
-        <br />
-        {dbStats.usagePercent}% used
-      </div>
-    </div>
-  </div>
-)}
+            {/* Text Info */}
+            <div className="mt-2 text-[10px] text-gray-600 dark:text-gray-300">
+              {dbStats.storageSizeMB} MB / {dbStats.limitMB} MB
+              <br />
+              {dbStats.usagePercent}% used
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ✅ LOW STOCK (DYNAMIC) */}
       {lowStockItems.length > 0 && (
         <div className="px-3 mb-3 hidden sm:block">
           <div className="p-3 rounded-md bg-yellow-50 dark:bg-black border border-yellow-200 dark:border-[#2d1a00]">
-
             <div className="flex items-center gap-2 mb-1">
               <FaExclamationTriangle className="text-yellow-500 text-xs" />
               <span className="text-xs font-semibold text-yellow-600">
@@ -259,6 +243,20 @@ const SideBar = () => {
         </div>
       )}
 
+      {/* THEME */}
+      <div className="px-3 mb-3">
+        <button
+          onClick={toggleTheme}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md
+          border border-gray-300 dark:border-gray-600"
+        >
+          {theme === "dark" ? <FaSun /> : <FaMoon />}
+          <span className="text-xs hidden lg:block">
+            {theme === "dark" ? "Light Mode" : "Dark Mode"}
+          </span>
+        </button>
+      </div>
+
       {/* PROFILE */}
       <div className="mt-auto p-4 lg:p-3 border-t border-gray-200 dark:border-[#2a2a2a]">
         <div className="flex items-center justify-center lg:justify-between">
@@ -267,9 +265,7 @@ const SideBar = () => {
 
             <div className="">
               <p className="text-xs font-medium">Admin</p>
-              <p className="text-[10px] text-gray-500">
-                admin@mobistock.com
-              </p>
+              <p className="text-[10px] text-gray-500">admin@mobistock.com</p>
             </div>
           </div>
 
@@ -286,4 +282,3 @@ const SideBar = () => {
 };
 
 export default SideBar;
-

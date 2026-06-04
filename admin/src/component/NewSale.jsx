@@ -117,13 +117,8 @@ const NewSale = ({ products, loadingProducts, onSaleComplete, onViewHistory }) =
     setSubmitting(false);
   };
 
-  // ── KEY CHANGE: navigate to bill page instead of just closing ──
-  const handleNewSale = () => {
-    const inv = successInvoice;
-    setSuccessInvoice(null);
-    // Navigate to bill/print page and pass the invoice data as route state
-    navigate("/sales/invoice", { state: { invoice: inv } });
-  };
+  const handleClose = () => setSuccessInvoice(null);
+
 
   const handleViewHistory = () => {
     const inv = successInvoice;
@@ -362,7 +357,7 @@ const NewSale = ({ products, loadingProducts, onSaleComplete, onViewHistory }) =
                   <p className="text-[10px] font-mono text-gray-400 dark:text-gray-500 mt-0.5">{successInvoice.invoiceNo}</p>
                 </div>
               </div>
-              <button onClick={handleNewSale} className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition ml-2">
+              <button onClick={handleClose} className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition ml-2">
                 <FaTimes />
               </button>
             </div>
@@ -403,10 +398,10 @@ const NewSale = ({ products, loadingProducts, onSaleComplete, onViewHistory }) =
                 <FaReceipt size={11} /> History
               </button>
 
-              {/* ── PRINT BILL — goes to invoice page ── */}
-              <button onClick={handleNewSale}
+              {/* done */}
+              <button onClick={handleClose}
                 className="flex-1 py-2 rounded-lg text-sm font-semibold text-white bg-[#b00000] hover:bg-[#8b0000] transition flex items-center justify-center gap-2">
-                <FaPrint size={11} /> Print Bill
+                <FaCheck size={11} /> Done
               </button>
             </div>
           </div>

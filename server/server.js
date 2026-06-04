@@ -8,6 +8,7 @@ import saleRouter from './routes/salesRoutes.js';
 import repairRouter from './routes/repairRoutes.js';
 import adminRouter from './routes/adminRoute.js';
 import cookieParser from "cookie-parser";
+import DbStatsRouter from './routes/dbStatsRoute.js';
 
 
 dotenv.config();
@@ -27,6 +28,8 @@ app.use('/api/products', productRouter);
 app.use('/api/sales', saleRouter);
 app.use('/api/repairs', repairRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/db', DbStatsRouter);
+
 
 app.get('/', (req, res) => {
   res.send('Hello World! smart spider server is Here');

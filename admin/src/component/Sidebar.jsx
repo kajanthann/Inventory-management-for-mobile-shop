@@ -25,6 +25,7 @@ const SideBar = () => {
 
   // ✅ LOW STOCK STATE
   const [lowStockItems, setLowStockItems] = useState([]);
+  const [dbStats, setDbStats] = useState(null);
 
   const menu = [
     { name: "Dashboard", icon: <FaTachometerAlt />, path: "/dashboard" },
@@ -52,8 +53,18 @@ const SideBar = () => {
     }
   };
 
+  const fetchDbStats = async () => {
+  try {
+    const { data } = await axiosInstance.get("/api/db/stats");
+    setDbStats(data);
+  } catch (err) {
+    console.log("DB stats fetch error:", err);
+  }
+};
+
   useEffect(() => {
     fetchLowStock();
+    fetchDbStats();
   }, []);
 
   // ==========================
@@ -187,6 +198,39 @@ const SideBar = () => {
           </span>
         </button>
       </div>
+
+      {/* DB STORAGE STATUS */}
+{dbStats && (
+  <div className="px-3 mb-3 hidden sm:block">
+    <div className="p-3 rounded-md border bg-blue-50 dark:bg-[#111] border-blue-200 dark:border-[#2a2a2a]">
+
+      <p className="text-xs font-semibold mb-2 text-blue-600 dark:text-blue-400">
+        DB Storage Usage
+      </p>
+
+      {/* Progress Bar */}
+      <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div
+          className={`h-full ${
+            dbStats.usagePercent < 60
+              ? "bg-green-500"
+              : dbStats.usagePercent < 80
+              ? "bg-yellow-500"
+              : "bg-red-500"
+          }`}
+          style={{ width: `${dbStats.usagePercent}%` }}
+        />
+      </div>
+
+      {/* Text Info */}
+      <div className="mt-2 text-[10px] text-gray-600 dark:text-gray-300">
+        {dbStats.storageSizeMB} MB / {dbStats.limitMB} MB
+        <br />
+        {dbStats.usagePercent}% used
+      </div>
+    </div>
+  </div>
+)}
 
       {/* ✅ LOW STOCK (DYNAMIC) */}
       {lowStockItems.length > 0 && (

@@ -1,15 +1,13 @@
 import jwt from "jsonwebtoken";
+import validator from "validator";
 import sendEmail from "../middleware/sendEmail.js";
 import Admin from "../models/admin.js";
-import saleModel   from "../models/Sale.js";
+import saleModel from "../models/Sale.js";
 import productModel from "../models/product.js";
-import repairModel  from "../models/repair.js";
+import repairModel from "../models/repair.js";
 import { getOtpEmailTemplate } from "../utils/emailTemplates.js";
 
-
-// ======================
 // STEP 1: SEND OTP
-// ======================
 export const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -21,13 +19,30 @@ export const adminLogin = async (req, res) => {
       });
     }
 
-    if (
-      email !== process.env.ADMIN_EMAIL ||
-      password !== process.env.ADMIN_PASSWORD
-    ) {
+    // Email format validation
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const adminEmail = process.env.ADMIN_EMAIL.trim().toLowerCase();
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    
+    if (normalizedEmail !== adminEmail) {
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
+        message: "Invalid email address",
+      });
+    }
+
+    if (password !== adminPassword) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid password",
       });
     }
 
@@ -45,11 +60,7 @@ export const adminLogin = async (req, res) => {
 
     await admin.save();
 
-    await sendEmail(
-      email,
-      "Admin OTP Login",
-      getOtpEmailTemplate(otp)
-    );
+    await sendEmail(email, "Admin OTP Login", getOtpEmailTemplate(otp));
 
     return res.json({
       success: true,
@@ -134,11 +145,9 @@ export const verifyAdminOtp = async (req, res) => {
 
     await admin.save();
 
-    const token = jwt.sign(
-      { id: admin._id, email },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+    const token = jwt.sign({ id: admin._id, email }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
 
     res.cookie("aToken", token, {
       httpOnly: true,
@@ -211,23 +220,33 @@ export const sendEmailTo = async (req, res) => {
   }
 };
 
-
 // ── helpers ───────────────────────────────────────────────────────
 const startOf = (unit, date = new Date()) => {
   const d = new Date(date);
-  if (unit === "day")   { d.setHours(0,0,0,0); return d; }
-  if (unit === "week")  { d.setHours(0,0,0,0); d.setDate(d.getDate() - d.getDay()); return d; }
-  if (unit === "month") { return new Date(d.getFullYear(), d.getMonth(), 1); }
-  if (unit === "year")  { return new Date(d.getFullYear(), 0, 1); }
+  if (unit === "day") {
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+  if (unit === "week") {
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - d.getDay());
+    return d;
+  }
+  if (unit === "month") {
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  }
+  if (unit === "year") {
+    return new Date(d.getFullYear(), 0, 1);
+  }
 };
 
 export const getDashboardStats = async (req, res) => {
   try {
-    const now        = new Date();
+    const now = new Date();
     const todayStart = startOf("day");
-    const weekStart  = startOf("week");
+    const weekStart = startOf("week");
     const monthStart = startOf("month");
-    const yearStart  = startOf("year");
+    const yearStart = startOf("year");
 
     // ── All data ──────────────────────────────────────────────
     const [allSales, allProducts, allRepairs] = await Promise.all([
@@ -236,44 +255,80 @@ export const getDashboardStats = async (req, res) => {
       repairModel.find().sort({ createdAt: -1 }),
     ]);
 
-    const completedSales = allSales.filter(s => s.status === "completed");
+    const completedSales = allSales.filter((s) => s.status === "completed");
 
     // ── Revenue helpers ───────────────────────────────────────
     const revenueIn = (sales, from) =>
-      sales.filter(s => new Date(s.createdAt) >= from)
-           .reduce((sum, s) => sum + s.grandTotal, 0);
+      sales
+        .filter((s) => new Date(s.createdAt) >= from)
+        .reduce((sum, s) => sum + s.grandTotal, 0);
 
     const profitIn = (sales, from, products) =>
-      sales.filter(s => new Date(s.createdAt) >= from)
-           .reduce((sum, s) =>
-             sum + (s.items || []).reduce((a, item) => {
-               const prod = products.find(p => String(p._id) === String(item.product));
-               return a + (prod ? (item.unitPrice - prod.cost) * item.qty : 0);
-             }, 0), 0);
+      sales
+        .filter((s) => new Date(s.createdAt) >= from)
+        .reduce(
+          (sum, s) =>
+            sum +
+            (s.items || []).reduce((a, item) => {
+              const prod = products.find(
+                (p) => String(p._id) === String(item.product),
+              );
+              return a + (prod ? (item.unitPrice - prod.cost) * item.qty : 0);
+            }, 0),
+          0,
+        );
 
     // ── KPI ───────────────────────────────────────────────────
     const kpi = {
-      today:   { revenue: revenueIn(completedSales, todayStart),  profit: profitIn(completedSales, todayStart,  allProducts), sales: completedSales.filter(s => new Date(s.createdAt) >= todayStart).length  },
-      week:    { revenue: revenueIn(completedSales, weekStart),   profit: profitIn(completedSales, weekStart,   allProducts), sales: completedSales.filter(s => new Date(s.createdAt) >= weekStart).length   },
-      month:   { revenue: revenueIn(completedSales, monthStart),  profit: profitIn(completedSales, monthStart,  allProducts), sales: completedSales.filter(s => new Date(s.createdAt) >= monthStart).length  },
-      year:    { revenue: revenueIn(completedSales, yearStart),   profit: profitIn(completedSales, yearStart,   allProducts), sales: completedSales.filter(s => new Date(s.createdAt) >= yearStart).length   },
-      allTime: { revenue: revenueIn(completedSales, new Date(0)), profit: profitIn(completedSales, new Date(0), allProducts), sales: completedSales.length },
+      today: {
+        revenue: revenueIn(completedSales, todayStart),
+        profit: profitIn(completedSales, todayStart, allProducts),
+        sales: completedSales.filter((s) => new Date(s.createdAt) >= todayStart)
+          .length,
+      },
+      week: {
+        revenue: revenueIn(completedSales, weekStart),
+        profit: profitIn(completedSales, weekStart, allProducts),
+        sales: completedSales.filter((s) => new Date(s.createdAt) >= weekStart)
+          .length,
+      },
+      month: {
+        revenue: revenueIn(completedSales, monthStart),
+        profit: profitIn(completedSales, monthStart, allProducts),
+        sales: completedSales.filter((s) => new Date(s.createdAt) >= monthStart)
+          .length,
+      },
+      year: {
+        revenue: revenueIn(completedSales, yearStart),
+        profit: profitIn(completedSales, yearStart, allProducts),
+        sales: completedSales.filter((s) => new Date(s.createdAt) >= yearStart)
+          .length,
+      },
+      allTime: {
+        revenue: revenueIn(completedSales, new Date(0)),
+        profit: profitIn(completedSales, new Date(0), allProducts),
+        sales: completedSales.length,
+      },
     };
 
     // ── Daily revenue chart — last 14 days ────────────────────
     const dailyMap = {};
     for (let i = 13; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i); d.setHours(0,0,0,0);
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      d.setHours(0, 0, 0, 0);
       const key = d.toISOString().slice(0, 10);
       dailyMap[key] = { day: key, revenue: 0, profit: 0, sales: 0 };
     }
-    completedSales.forEach(s => {
-      const key = (s.date || s.createdAt?.toISOString().slice(0, 10));
+    completedSales.forEach((s) => {
+      const key = s.date || s.createdAt?.toISOString().slice(0, 10);
       if (dailyMap[key]) {
         dailyMap[key].revenue += s.grandTotal;
-        dailyMap[key].sales   += 1;
-        dailyMap[key].profit  += (s.items || []).reduce((a, item) => {
-          const prod = allProducts.find(p => String(p._id) === String(item.product));
+        dailyMap[key].sales += 1;
+        dailyMap[key].profit += (s.items || []).reduce((a, item) => {
+          const prod = allProducts.find(
+            (p) => String(p._id) === String(item.product),
+          );
           return a + (prod ? (item.unitPrice - prod.cost) * item.qty : 0);
         }, 0);
       }
@@ -283,20 +338,28 @@ export const getDashboardStats = async (req, res) => {
     // ── Weekly chart — last 8 weeks ───────────────────────────
     const weeklyMap = {};
     for (let i = 7; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i * 7);
+      const d = new Date();
+      d.setDate(d.getDate() - i * 7);
       const week = startOf("week", d);
-      const key  = week.toISOString().slice(0, 10);
-      weeklyMap[key] = { week: `W${String(Math.ceil((week.getDate()) / 7)).padStart(2,"0")} ${week.toLocaleString("default",{month:"short"})}`, revenue: 0, profit: 0, sales: 0 };
+      const key = week.toISOString().slice(0, 10);
+      weeklyMap[key] = {
+        week: `W${String(Math.ceil(week.getDate() / 7)).padStart(2, "0")} ${week.toLocaleString("default", { month: "short" })}`,
+        revenue: 0,
+        profit: 0,
+        sales: 0,
+      };
     }
-    completedSales.forEach(s => {
-      const d    = new Date(s.createdAt);
+    completedSales.forEach((s) => {
+      const d = new Date(s.createdAt);
       const week = startOf("week", d);
-      const key  = week.toISOString().slice(0, 10);
+      const key = week.toISOString().slice(0, 10);
       if (weeklyMap[key]) {
         weeklyMap[key].revenue += s.grandTotal;
-        weeklyMap[key].sales   += 1;
-        weeklyMap[key].profit  += (s.items || []).reduce((a, item) => {
-          const prod = allProducts.find(p => String(p._id) === String(item.product));
+        weeklyMap[key].sales += 1;
+        weeklyMap[key].profit += (s.items || []).reduce((a, item) => {
+          const prod = allProducts.find(
+            (p) => String(p._id) === String(item.product),
+          );
           return a + (prod ? (item.unitPrice - prod.cost) * item.qty : 0);
         }, 0);
       }
@@ -307,17 +370,24 @@ export const getDashboardStats = async (req, res) => {
     const monthlyMap = {};
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-      monthlyMap[key] = { month: d.toLocaleString("default",{month:"short",year:"2-digit"}), revenue: 0, profit: 0, sales: 0 };
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      monthlyMap[key] = {
+        month: d.toLocaleString("default", { month: "short", year: "2-digit" }),
+        revenue: 0,
+        profit: 0,
+        sales: 0,
+      };
     }
-    completedSales.forEach(s => {
-      const d   = new Date(s.createdAt);
-      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+    completedSales.forEach((s) => {
+      const d = new Date(s.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       if (monthlyMap[key]) {
         monthlyMap[key].revenue += s.grandTotal;
-        monthlyMap[key].sales   += 1;
-        monthlyMap[key].profit  += (s.items || []).reduce((a, item) => {
-          const prod = allProducts.find(p => String(p._id) === String(item.product));
+        monthlyMap[key].sales += 1;
+        monthlyMap[key].profit += (s.items || []).reduce((a, item) => {
+          const prod = allProducts.find(
+            (p) => String(p._id) === String(item.product),
+          );
           return a + (prod ? (item.unitPrice - prod.cost) * item.qty : 0);
         }, 0);
       }
@@ -330,13 +400,15 @@ export const getDashboardStats = async (req, res) => {
       const yr = now.getFullYear() - i;
       yearlyMap[yr] = { year: String(yr), revenue: 0, profit: 0, sales: 0 };
     }
-    completedSales.forEach(s => {
+    completedSales.forEach((s) => {
       const yr = new Date(s.createdAt).getFullYear();
       if (yearlyMap[yr]) {
         yearlyMap[yr].revenue += s.grandTotal;
-        yearlyMap[yr].sales   += 1;
-        yearlyMap[yr].profit  += (s.items || []).reduce((a, item) => {
-          const prod = allProducts.find(p => String(p._id) === String(item.product));
+        yearlyMap[yr].sales += 1;
+        yearlyMap[yr].profit += (s.items || []).reduce((a, item) => {
+          const prod = allProducts.find(
+            (p) => String(p._id) === String(item.product),
+          );
           return a + (prod ? (item.unitPrice - prod.cost) * item.qty : 0);
         }, 0);
       }
@@ -345,62 +417,99 @@ export const getDashboardStats = async (req, res) => {
 
     // ── Payment method breakdown ──────────────────────────────
     const payMap = {};
-    completedSales.forEach(s => { payMap[s.paymentMethod] = (payMap[s.paymentMethod] || 0) + 1; });
-    const paymentChart = Object.entries(payMap).map(([name, value]) => ({ name, value }));
+    completedSales.forEach((s) => {
+      payMap[s.paymentMethod] = (payMap[s.paymentMethod] || 0) + 1;
+    });
+    const paymentChart = Object.entries(payMap).map(([name, value]) => ({
+      name,
+      value,
+    }));
 
     // ── Top selling products ──────────────────────────────────
     const sellerMap = {};
-    completedSales.forEach(s =>
-      (s.items || []).forEach(item => {
+    completedSales.forEach((s) =>
+      (s.items || []).forEach((item) => {
         const key = item.name;
         if (!sellerMap[key]) sellerMap[key] = { name: key, qty: 0, revenue: 0 };
-        sellerMap[key].qty     += item.qty;
+        sellerMap[key].qty += item.qty;
         sellerMap[key].revenue += item.subtotal;
-      })
+      }),
     );
-    const topSellers = Object.values(sellerMap).sort((a,b) => b.qty - a.qty).slice(0, 7);
+    const topSellers = Object.values(sellerMap)
+      .sort((a, b) => b.qty - a.qty)
+      .slice(0, 7);
 
     // ── Inventory ─────────────────────────────────────────────
-    const lowStock       = allProducts.filter(p => p.qty <= 5).map(p => ({ _id: p._id, name: p.name, qty: p.qty, category: p.category }));
+    const lowStock = allProducts
+      .filter((p) => p.qty <= 5)
+      .map((p) => ({
+        _id: p._id,
+        name: p.name,
+        qty: p.qty,
+        category: p.category,
+      }));
     const inventoryValue = allProducts.reduce((s, p) => s + p.qty * p.price, 0);
-    const catMap         = {};
-    allProducts.forEach(p => { catMap[p.category] = (catMap[p.category] || 0) + p.qty * p.price; });
-    const categoryChart  = Object.entries(catMap).map(([name, value]) => ({ name, value }));
+    const catMap = {};
+    allProducts.forEach((p) => {
+      catMap[p.category] = (catMap[p.category] || 0) + p.qty * p.price;
+    });
+    const categoryChart = Object.entries(catMap).map(([name, value]) => ({
+      name,
+      value,
+    }));
 
     // ── Repairs ───────────────────────────────────────────────
     const repairStats = {
-      pending:  allRepairs.filter(r => r.status === "pending").length,
-      done:     allRepairs.filter(r => r.status === "done").length,
-      returned: allRepairs.filter(r => r.status === "returned").length,
-      total:    allRepairs.length,
+      pending: allRepairs.filter((r) => r.status === "pending").length,
+      done: allRepairs.filter((r) => r.status === "done").length,
+      returned: allRepairs.filter((r) => r.status === "returned").length,
+      total: allRepairs.length,
     };
-    const pendingRepairs = allRepairs.filter(r => r.status === "pending").slice(0, 5);
+    const pendingRepairs = allRepairs
+      .filter((r) => r.status === "pending")
+      .slice(0, 5);
 
     const repairMonthMap = {};
     for (let i = 5; i >= 0; i--) {
-      const d   = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-      repairMonthMap[key] = { month: d.toLocaleString("default",{month:"short"}), pending: 0, done: 0, returned: 0 };
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      repairMonthMap[key] = {
+        month: d.toLocaleString("default", { month: "short" }),
+        pending: 0,
+        done: 0,
+        returned: 0,
+      };
     }
-    allRepairs.forEach(r => {
-      const d   = new Date(r.createdAt);
-      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-      if (repairMonthMap[key]) repairMonthMap[key][r.status] = (repairMonthMap[key][r.status] || 0) + 1;
+    allRepairs.forEach((r) => {
+      const d = new Date(r.createdAt);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      if (repairMonthMap[key])
+        repairMonthMap[key][r.status] =
+          (repairMonthMap[key][r.status] || 0) + 1;
     });
     const repairChart = Object.values(repairMonthMap);
 
     // ── Recent sales ──────────────────────────────────────────
-    const recentSales = allSales.slice(0, 5).map(s => ({
-      _id: s._id, invoiceNo: s.invoiceNo, date: s.date,
-      customer: s.customer, grandTotal: s.grandTotal,
-      paymentMethod: s.paymentMethod, status: s.status,
-      itemCount: (s.items||[]).length,
+    const recentSales = allSales.slice(0, 5).map((s) => ({
+      _id: s._id,
+      invoiceNo: s.invoiceNo,
+      date: s.date,
+      customer: s.customer,
+      grandTotal: s.grandTotal,
+      paymentMethod: s.paymentMethod,
+      status: s.status,
+      itemCount: (s.items || []).length,
     }));
 
     return res.json({
       success: true,
       kpi,
-      charts: { daily: dailyChart, weekly: weeklyChart, monthly: monthlyChart, yearly: yearlyChart },
+      charts: {
+        daily: dailyChart,
+        weekly: weeklyChart,
+        monthly: monthlyChart,
+        yearly: yearlyChart,
+      },
       paymentChart,
       topSellers,
       categoryChart,
@@ -412,7 +521,6 @@ export const getDashboardStats = async (req, res) => {
       inventoryValue,
       totalProducts: allProducts.length,
     });
-
   } catch (err) {
     console.error("Dashboard error:", err);
     return res.status(500).json({ success: false, message: err.message });

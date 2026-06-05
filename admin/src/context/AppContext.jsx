@@ -41,7 +41,8 @@ const AppContextProvider = ({ children }) => {
     instance.interceptors.response.use(
       (res) => res,
       (error) => {
-        if (error.response?.status === 401) {
+        const token = localStorage.getItem("aToken");
+        if (error.response?.status === 401 && token) {
           toast.error("Session expired");
           localStorage.removeItem("aToken");
           setAtoken("");

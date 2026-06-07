@@ -13,141 +13,38 @@ export const adminLogin = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Email & password required",
-      });
+      return res.status(400).json({ success: false, message: "Email & password required" });
     }
 
-    // Email format validation
     if (!validator.isEmail(email)) {
-      return res.status(400).json({
-        success: false,
-        message: "Please enter a valid email address",
-      });
+      return res.status(400).json({ success: false, message: "Please enter a valid email address" });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
     const adminEmail = process.env.ADMIN_EMAIL.trim().toLowerCase();
-    const adminPassword = process.env.ADMIN_PASSWORD;
 
-    
     if (normalizedEmail !== adminEmail) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email address",
-      });
+      return res.status(401).json({ success: false, message: "Invalid email address" });
     }
 
-    if (password !== adminPassword) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid password",
-      });
+    if (password !== process.env.ADMIN_PASSWORD) {
+      return res.status(401).json({ success: false, message: "Invalid password" });
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    let admin = await Admin.findOne({ email });
-
+    // Find or create admin record
+    let admin = await Admin.findOne({ email: normalizedEmail });
     if (!admin) {
-      admin = await Admin.create({ email });
+      admin = await Admin.create({ email: normalizedEmail });
     }
 
-    admin.otp = otp;
-    admin.otpExpiresAt = new Date(Date.now() + 1 * 60 * 1000); // 1 MINUTE
-    admin.otpAttempts = 0;
-
-    await admin.save();
-
-    await sendEmail(email, "Admin OTP Login", getOtpEmailTemplate(otp));
-
-    return res.json({
-      success: true,
-      message: "OTP sent successfully",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// ======================
-// STEP 2: VERIFY OTP
-// ======================
-export const verifyAdminOtp = async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-
-    const userAgent = req.headers["user-agent"];
+    // Log login history
     const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-
-    const admin = await Admin.findOne({ email });
-
-    if (!admin) {
-      return res.status(400).json({
-        success: false,
-        message: "Admin not found",
-      });
-    }
-
-    if (!admin.otp) {
-      return res.status(400).json({
-        success: false,
-        message: "No OTP requested",
-      });
-    }
-
-    if (admin.otpExpiresAt < new Date()) {
-      admin.otp = null;
-      admin.otpExpiresAt = null;
-      await admin.save();
-
-      return res.status(400).json({
-        success: false,
-        message: "OTP expired",
-      });
-    }
-
-    if (admin.otpAttempts >= 5) {
-      admin.otp = null;
-      admin.otpExpiresAt = null;
-      await admin.save();
-
-      return res.status(429).json({
-        success: false,
-        message: "Too many attempts",
-      });
-    }
-
-    if (otp !== admin.otp) {
-      admin.otpAttempts += 1;
-      await admin.save();
-
-      return res.status(400).json({
-        success: false,
-        message: "Invalid OTP",
-      });
-    }
-
-    // SUCCESS
-    admin.otp = null;
-    admin.otpExpiresAt = null;
-    admin.otpAttempts = 0;
-
-    admin.loginHistory.push({
-      time: new Date(),
-      ipAddress: ip,
-      deviceInfo: userAgent,
-    });
-
+    const userAgent = req.headers["user-agent"];
+    admin.loginHistory.push({ time: new Date(), ipAddress: ip, deviceInfo: userAgent });
     await admin.save();
 
-    const token = jwt.sign({ id: admin._id, email }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    // Issue JWT
+    const token = jwt.sign({ id: admin._id, email: normalizedEmail }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
     res.cookie("aToken", token, {
       httpOnly: true,
@@ -156,16 +53,10 @@ export const verifyAdminOtp = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    return res.json({
-      success: true,
-      message: "Login successful",
-      token,
-    });
+    return res.json({ success: true, message: "Login successful", token });
+
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 

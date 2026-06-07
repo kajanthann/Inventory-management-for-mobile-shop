@@ -1,7 +1,6 @@
 import express from "express";
 import {
   adminLogin,
-  verifyAdminOtp,
   logoutAdmin,
   sendEmailTo,
   getDashboardStats,
@@ -13,7 +12,6 @@ const adminRouter = express.Router();
 
 // PUBLIC
 adminRouter.post("/login", adminLogin);
-adminRouter.post("/verify-otp", verifyAdminOtp);
 
 // PROTECTED
 adminRouter.use(authAdmin);

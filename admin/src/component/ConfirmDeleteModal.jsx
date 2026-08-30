@@ -1,8 +1,16 @@
 import React, { useState, useContext } from "react";
-import { FaTrash, FaTimes, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaTrash, FaEdit, FaTimes, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { AppContext } from "../context/AppContext";
 
-const ConfirmDeleteModal = ({ open, title, message, onConfirm, onCancel }) => {
+const ConfirmDeleteModal = ({
+  open,
+  title,
+  message,
+  onConfirm,
+  onCancel,
+  actionLabel = "Delete",
+  variant = "delete", // "delete" | "edit"
+}) => {
   const { verifyAdminPassword } = useContext(AppContext);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -10,24 +18,24 @@ const ConfirmDeleteModal = ({ open, title, message, onConfirm, onCancel }) => {
 
   if (!open) return null;
 
-const handleConfirm = (e) => {
-  e.preventDefault();
+  const handleConfirm = (e) => {
+    e.preventDefault();
 
-  if (!password.trim()) {
-    setError("Please enter your password.");
-    return;
-  }
+    if (!password.trim()) {
+      setError("Please enter your password.");
+      return;
+    }
 
-  if (!verifyAdminPassword(password)) {
-    setError("Incorrect password.");
-    return;
-  }
+    if (!verifyAdminPassword(password)) {
+      setError("Incorrect password.");
+      return;
+    }
 
-  setPassword("");
-  setError("");
-  setShowPassword(false);
-  onConfirm();
-};
+    setPassword("");
+    setError("");
+    setShowPassword(false);
+    onConfirm();
+  };
 
   const handleCancel = () => {
     setPassword("");
@@ -36,16 +44,23 @@ const handleConfirm = (e) => {
     onCancel();
   };
 
+  const isEdit = variant === "edit";
+  const HeaderIcon = isEdit ? FaEdit : FaTrash;
+  const accentColor = isEdit ? "#b8860b" : "#b00000"; // amber for edit, red for delete
+  const buttonBg = isEdit
+    ? "bg-yellow-600 hover:bg-yellow-700"
+    : "bg-[#b00000] hover:bg-[#8b0000]";
+
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
       <div className="w-[380px] max-w-[95vw] rounded-xl border border-gray-200 dark:border-[#1f1f1f] overflow-hidden bg-white dark:bg-[#111111]">
-        <div className="h-[3px] bg-[#b00000]" />
+        <div className="h-[3px]" style={{ background: accentColor }} />
 
         <div className="px-5 py-4 border-b border-gray-200 dark:border-[#1f1f1f] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FaTrash className="text-[#b00000]" size={13} />
+            <HeaderIcon style={{ color: accentColor }} size={13} />
             <h2 className="font-semibold text-gray-900 dark:text-white text-sm">
-              {title || "Confirm Delete"}
+              {title || (isEdit ? "Confirm Edit" : "Confirm Delete")}
             </h2>
           </div>
           <button
@@ -59,7 +74,9 @@ const handleConfirm = (e) => {
         <form onSubmit={handleConfirm} className="p-5 space-y-4">
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {message ||
-              "This action cannot be undone. Enter the admin password to confirm deletion."}
+              (isEdit
+                ? "Enter the admin password to edit this record."
+                : "This action cannot be undone. Enter the admin password to confirm deletion.")}
           </p>
 
           <div>
@@ -99,9 +116,9 @@ const handleConfirm = (e) => {
             </button>
             <button
               type="submit"
-              className="flex-1 py-2 rounded-lg text-sm font-semibold text-white bg-[#b00000] hover:bg-[#8b0000] transition"
+              className={`flex-1 py-2 rounded-lg text-sm font-semibold text-white transition ${buttonBg}`}
             >
-              Delete
+              {actionLabel}
             </button>
           </div>
         </form>

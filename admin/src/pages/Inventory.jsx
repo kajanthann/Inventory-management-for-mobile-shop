@@ -43,6 +43,7 @@ const Inventory = () => {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [editTarget, setEditTarget] = useState(null);
   const confirmToast = useConfirmToast();
 
   const filtered = (products || []).filter(
@@ -246,7 +247,7 @@ const Inventory = () => {
                         <button onClick={() => setViewItem(p)} className="p-1.5 rounded border border-blue-500/20 text-blue-500 dark:text-blue-400 hover:bg-blue-500/10 transition">
                           <FaEye size={11} />
                         </button>
-                        <button onClick={() => openEdit(p)} className="p-1.5 rounded border border-yellow-500/20 text-yellow-500 dark:text-yellow-400 hover:bg-yellow-500/10 transition">
+                        <button onClick={() => setEditTarget(p)} className="p-1.5 rounded border border-yellow-500/20 text-yellow-500 dark:text-yellow-400 hover:bg-yellow-500/10 transition">
                           <FaEdit size={11} />
                         </button>
                         <button onClick={() => setDeleteTarget(p)} className="p-1.5 rounded border border-red-500/20 text-red-500 dark:text-red-400 hover:bg-red-500/10 transition">
@@ -364,11 +365,31 @@ const Inventory = () => {
             ? `Delete "${deleteTarget.name}" (${deleteTarget.imei})? This cannot be undone.`
             : ""
         }
+        variant="delete"
+        actionLabel="Delete"
         onConfirm={() => {
           handleDelete(deleteTarget._id);
           setDeleteTarget(null);
         }}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+     {/* ── Edit Confirm Modal ── */}
+      <ConfirmDeleteModal
+        open={!!editTarget}
+        title="Confirm Edit Access"
+        message={
+          editTarget
+            ? `Enter admin password to edit "${editTarget.name}" (${editTarget.imei}).`
+            : ""
+        }
+        variant="edit"
+        actionLabel="Edit"
+        onConfirm={() => {
+          openEdit(editTarget);
+          setEditTarget(null);
+        }}
+        onCancel={() => setEditTarget(null)}
       />
 
     </div>

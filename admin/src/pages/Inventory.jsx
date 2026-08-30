@@ -15,6 +15,7 @@ import {
   FaFilter,
 } from "react-icons/fa";
 import { useConfirmToast } from "../hooks/useConfirmToast";
+import ConfirmDeleteModal from "../component/ConfirmDeleteModal";
 
 const Inventory = () => {
   const { products, fetchProducts, axiosInstance } = useContext(AppContext);
@@ -41,6 +42,7 @@ const Inventory = () => {
   const [form, setForm] = useState(emptyForm);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const confirmToast = useConfirmToast();
 
   const filtered = (products || []).filter(
@@ -117,10 +119,10 @@ const Inventory = () => {
   const handleDelete = async (_id) => {
     try {
       const { data } = await axiosInstance.delete(`/api/products/${_id}`);
-      if (data.success) { toast.success("Deleted"); fetchProducts(); }
-      else toast.error(data.message);
+      if (data.success) { fetchProducts(); }
+      else console.error(data.message);
     } catch (err) {
-      toast.error("Delete failed");
+      console.error("Delete failed", err);
     }
   };
 
@@ -247,7 +249,7 @@ const Inventory = () => {
                         <button onClick={() => openEdit(p)} className="p-1.5 rounded border border-yellow-500/20 text-yellow-500 dark:text-yellow-400 hover:bg-yellow-500/10 transition">
                           <FaEdit size={11} />
                         </button>
-                        <button onClick={() => confirmToast("Are you sure you want to delete this product?", () => handleDelete(p._id))} className="p-1.5 rounded border border-red-500/20 text-red-500 dark:text-red-400 hover:bg-red-500/10 transition">
+                        <button onClick={() => setDeleteTarget(p)} className="p-1.5 rounded border border-red-500/20 text-red-500 dark:text-red-400 hover:bg-red-500/10 transition">
                           <FaTrash size={11} />
                         </button>
                       </div>
@@ -352,6 +354,22 @@ const Inventory = () => {
           </div>
         </div>
       )}
+
+      {/* ── Delete Confirm Modal ── */}
+      <ConfirmDeleteModal
+        open={!!deleteTarget}
+        title="Delete Product"
+        message={
+          deleteTarget
+            ? `Delete "${deleteTarget.name}" (${deleteTarget.imei})? This cannot be undone.`
+            : ""
+        }
+        onConfirm={() => {
+          handleDelete(deleteTarget._id);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
 
     </div>
   );

@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 const Rs = (v) => `Rs ${Number(v).toLocaleString()}`;
 const todayStr = () => new Date().toISOString().split("T")[0];
 
+
 // ── Toast style ───────────────────────────────────────────────────
 const toastStyle = {
   background: "#1a1a1a", color: "#fff",
@@ -85,35 +86,41 @@ const Sales = () => {
   const handleSaleComplete = async (invoiceData) => {
     const toastId = toast.loading("Processing sale...", { style: toastStyle });
     try {
-      const payload = {
-        invoiceNo:     genInvoiceNo(sales),
-        date:          new Date().toISOString().split("T")[0],
-        time:          new Date().toLocaleTimeString([], {
-                         hour: "2-digit", minute: "2-digit", second: "2-digit",
-                       }),
-        customer: {
-          name:    invoiceData.customer.name    || "Walk-in",
-          phone:   invoiceData.customer.phone   || "",
-          cashier: invoiceData.customer.cashier || "",
-        },
-        items: invoiceData.items.map((item) => ({
-          product:   item.productId,
-          name:      item.name,
-          imei:      item.imei     || "",
-          qty:       Number(item.qty),
-          unitPrice: Number(item.unitPrice),
-          discount:  Number(item.discount  || 0),
-          subtotal:  Number(item.subtotal  || 0),
-        })),
-        paymentMethod: invoiceData.paymentMethod,
-        subtotal:      Number(invoiceData.subtotal   || 0),
-        discount:      Number(invoiceData.discount   || 0),
-        grandTotal:    Number(invoiceData.grandTotal || 0),
-        amountPaid:    Number(invoiceData.amountPaid || 0),
-        change:        Number(invoiceData.change     || 0),
-        tax:           0,
-        status:        "completed",
-      };
+      // Inside handleSaleComplete in Sales.jsx — add these 2 lines to payload:
+        const payload = {
+          invoiceNo:     genInvoiceNo(sales),
+          date:          new Date().toISOString().split("T")[0],
+          time:          new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+          customer: {
+            name:    invoiceData.customer.name    || "Walk-in",
+            phone:   invoiceData.customer.phone   || "",
+            cashier: invoiceData.customer.cashier || "",
+          },
+          items: invoiceData.items.map((item) => ({
+            product:   item.productId,
+            name:      item.name,
+            imei:      item.imei     || "",
+            qty:       Number(item.qty),
+            unitPrice: Number(item.unitPrice),
+            discount:  Number(item.discount  || 0),
+            subtotal:  Number(item.subtotal  || 0),
+          })),
+          // ── ADD THESE TWO ──────────────────────────────────────────
+          extraItems: (invoiceData.extraItems || []).map((e) => ({
+            label: e.label,
+            price: Number(e.price),
+          })),
+          extraTotal:    Number(invoiceData.extraTotal   || 0),
+          // ───────────────────────────────────────────────────────────
+          paymentMethod: invoiceData.paymentMethod,
+          subtotal:      Number(invoiceData.subtotal   || 0),
+          discount:      Number(invoiceData.discount   || 0),
+          grandTotal:    Number(invoiceData.grandTotal || 0),
+          amountPaid:    Number(invoiceData.amountPaid || 0),
+          change:        Number(invoiceData.change     || 0),
+          tax:           0,
+          status:        "completed",
+        };
 
       const { data } = await axiosInstance.post("/api/sales/add", payload);
       toast.dismiss(toastId);

@@ -4,7 +4,6 @@ import { FaPlus } from "react-icons/fa";
 import RepairList from "../component/RepairList";
 import AddRepair from "../component/AddRepair";
 import toast from "react-hot-toast";
-import { useConfirmToast } from "../hooks/useConfirmToast";
 import Loading from "../component/Loading";
 
 const emptyForm = {
@@ -34,7 +33,6 @@ const Repair = () => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
-  const confirmToast = useConfirmToast();
 
   // ── FETCH REPAIRS ─────────────────────────────
   const fetchRepairs = async () => {
@@ -121,21 +119,15 @@ const Repair = () => {
 
       if (data.success) {
         setRepairs((prev) => prev.filter((r) => r._id !== id));
-        toast.success("Repair deleted");
       } else {
         toast.error(data.message);
       }
     } catch (err) {
-      toast.error("Delete failed");
-      console.log(err);
+      console.log("Delete failed",err);
     }
   };
 
-  const confirmDelete = (id) => {
-  confirmToast("Are you sure you want to delete this repair?", () => {
-    handleDelete(id);
-  });
-};
+
 
   // ── UPDATE REPAIR (DONE / RETURNED) ─────────────────────────────
   const handleComplete = async (id, price, status = "done") => {
@@ -217,7 +209,7 @@ const Repair = () => {
       {/* ── LIST ── */}
       <RepairList
         repairs={repairs}
-        onDelete={confirmDelete}
+        onDelete={handleDelete}
         onComplete={handleComplete}
       />
 

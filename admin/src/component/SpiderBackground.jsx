@@ -54,7 +54,7 @@ const seededRand = (seed) => {
   };
 };
 
-const generateSpiders = (count = 13) => {
+const generateSpiders = (count = 10) => {
   const rand = seededRand(42);
   return Array.from({ length: count }, (_, i) => ({
     id: i,
@@ -66,7 +66,7 @@ const generateSpiders = (count = 13) => {
   }));
 };
 
-const SPIDERS = generateSpiders(13);
+const SPIDERS = generateSpiders(10);
 
 // ── Main Background Component ──
 const SpiderBackground = () => {
@@ -85,7 +85,7 @@ const SpiderBackground = () => {
             width: `${size}px`,
             height: `${size}px`,
             transform: "translate(-50%, -50%)",
-            opacity: theme === "dark" ? opacity : opacity * 0.5,
+            opacity: theme === "dark" ? opacity : opacity * 0.9,
           }}
         >
           <SpiderWeb rotate={rotate} opacity={1} />

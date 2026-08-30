@@ -50,20 +50,19 @@ const AppLayout = () => {
   const { loading } = useContext(AppContext);
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-white">
+    <div className="flex h-screen bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-white relative">
+
+      {/* Background — fixed to viewport, sits behind everything, never scrolls */}
+      <SpiderBackground />
 
       {/* Sidebar */}
       <SideBar />
 
-      {/* Main */}
-      <div className="flex-1 bg-gray-50 dark:bg-[#0f0f0f] p-6 overflow-auto relative">
+      {/* Main scrollable area */}
+      <div className="flex-1 overflow-auto relative z-10">
+        <div className="p-6">
 
-        {/* Background */}
-        <SpiderBackground />
-
-
-        {/* Pages */}
-        <div className="relative z-10 mt-1">
+          {/* Pages */}
           <Routes>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/inventory" element={<Inventory />} />
@@ -72,8 +71,8 @@ const AppLayout = () => {
             <Route path="/bill" element={<SmartSpiderInvoice />} />
             <Route path="/sales/invoice" element={<InvoicePrint />} />
           </Routes>
-        </div>
 
+        </div>
       </div>
     </div>
   );

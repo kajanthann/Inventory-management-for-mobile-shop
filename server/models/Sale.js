@@ -2,46 +2,24 @@ import mongoose from "mongoose";
 
 const itemSchema = new mongoose.Schema(
   {
-    product: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Product",
-    },
-
-    name: {
-      type: String,
-      required: true,
-    },
-
-    imei: {
-      type: String,
-      default: "",
-    },
-
-    qty: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-
-    unitPrice: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-
-    discount: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-
-    subtotal: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
+    product:   { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+    name:      { type: String, required: true },
+    imei:      { type: String, default: "" },
+    qty:       { type: Number, required: true, min: 1 },
+    unitPrice: { type: Number, required: true, min: 0 },
+    discount:  { type: Number, default: 0, min: 0 },
+    subtotal:  { type: Number, required: true, min: 0 },
   },
-  { _id: false } // cleaner array
+  { _id: false }
+);
+
+// ── Extra / additional charge item ───────────────────────────────
+const extraItemSchema = new mongoose.Schema(
+  {
+    label: { type: String, required: true, trim: true }, // e.g. "Screen protector fitting"
+    price: { type: Number, required: true, min: 0 },
+  },
+  { _id: false }
 );
 
 const saleSchema = new mongoose.Schema(
@@ -53,19 +31,24 @@ const saleSchema = new mongoose.Schema(
       trim: true,
     },
 
-    date: {
-      type: String, // "2026-04-24"
-      required: true,
-    },
-
-    time: {
-      type: String, // "10:15:32"
-      required: true,
-    },
+    date: { type: String, required: true }, // "2026-04-24"
+    time: { type: String, required: true }, // "10:15:32"
 
     items: {
       type: [itemSchema],
       validate: [(val) => val.length > 0, "Cart cannot be empty"],
+    },
+
+    // ── Additional charges (screen protector, delivery, etc.) ──
+    extraItems: {
+      type: [extraItemSchema],
+      default: [],
+    },
+
+    extraTotal: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
 
     paymentMethod: {
@@ -74,45 +57,16 @@ const saleSchema = new mongoose.Schema(
       required: true,
     },
 
-    subtotal: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-
-    discount: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-
-    tax: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-
-    grandTotal: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-
-    amountPaid: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-
-    change: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
+    subtotal:   { type: Number, required: true, min: 0 },
+    discount:   { type: Number, default: 0,     min: 0 },
+    tax:        { type: Number, default: 0,     min: 0 },
+    grandTotal: { type: Number, required: true, min: 0 },
+    amountPaid: { type: Number, required: true, min: 0 },
+    change:     { type: Number, default: 0,     min: 0 },
 
     customer: {
-      name: { type: String, default: "" },
-      phone: { type: String, default: "" },
+      name:    { type: String, default: "" },
+      phone:   { type: String, default: "" },
       cashier: { type: String, default: "" },
     },
 
@@ -122,12 +76,8 @@ const saleSchema = new mongoose.Schema(
       default: "completed",
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-const saleModel =
-  mongoose.models.Sale || mongoose.model("Sale", saleSchema);
-
+const saleModel = mongoose.models.Sale || mongoose.model("Sale", saleSchema);
 export default saleModel;

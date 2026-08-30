@@ -11,6 +11,7 @@ import {
   FaUndo,
 } from "react-icons/fa";
 import { useConfirmToast } from "../hooks/useConfirmToast";
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
 
 const inputCls =
   "w-full px-3 py-1.5 rounded-lg text-sm border bg-gray-50 dark:bg-[#0a0a0a] border-gray-200 dark:border-[#1f1f1f] text-gray-900 dark:text-white outline-none focus:border-[#b00000] transition placeholder-gray-300 dark:placeholder-gray-700";
@@ -68,8 +69,9 @@ const RepairList = ({ repairs, onDelete, onComplete }) => {
   const [viewItem, setViewItem] = useState(null);
   const [priceModal, setPriceModal] = useState(null);
   const [priceInput, setPriceInput] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
-    const confirmToast = useConfirmToast();
+  const confirmToast = useConfirmToast();
 
   // ── Filtering ─────────────────────────────────────────────────
   const filtered = repairs.filter((r) => {
@@ -105,13 +107,13 @@ const RepairList = ({ repairs, onDelete, onComplete }) => {
     });
   };
 
-const handleReturn = () => {
-  confirmToast("Return this device to customer?", () => {
-    onComplete(priceModal._id, null, "returned");
-    setPriceModal(null);
-    setPriceInput("");
-  });
-};
+  const handleReturn = () => {
+    confirmToast("Return this device to customer?", () => {
+      onComplete(priceModal._id, null, "returned");
+      setPriceModal(null);
+      setPriceInput("");
+    });
+  };
 
   return (
     <>
@@ -272,7 +274,7 @@ const handleReturn = () => {
 
                         {/* Delete */}
                         <button
-                          onClick={() => onDelete(r._id)}
+                          onClick={() => setDeleteTarget(r)}
                           className="p-1.5 rounded border border-red-200 dark:border-red-500/20 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition"
                           title="Delete"
                         >
@@ -581,6 +583,22 @@ const handleReturn = () => {
           </div>
         </div>
       )}
+
+      {/* ═══════════ DELETE CONFIRM MODAL ═══════════ */}
+      <ConfirmDeleteModal
+        open={!!deleteTarget}
+        title="Delete Repair Record"
+        message={
+          deleteTarget
+            ? `Delete DC ${deleteTarget.collectionNo} (${deleteTarget.name})? This cannot be undone.`
+            : ""
+        }
+        onConfirm={() => {
+          onDelete(deleteTarget._id);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   );
 };

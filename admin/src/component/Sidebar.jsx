@@ -136,7 +136,7 @@ const SideBar = () => {
 
   return (
     <div
-      className="h-screen flex flex-col w-16 sm:w-52
+      className="relative z-10 h-screen flex flex-col w-16 sm:w-52
       bg-white dark:bg-[#1a1a1a]
       border-r border-gray-200 dark:border-[#2a2a2a]"
     >
@@ -156,10 +156,6 @@ const SideBar = () => {
             </div>
           )}
         </div>
-
-        <p className="text-[10px] text-gray-500 hidden sm:block">
-          Inventory System
-        </p>
       </div>
 
       {/* MENU */}

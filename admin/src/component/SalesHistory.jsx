@@ -48,6 +48,13 @@ const printInvoice = (sale) => {
   const emptyCount  = Math.max(0, ROWS - totalFilled);
   const grandTotal  = sale.grandTotal || 0;
 
+  // ── Discount / summary breakdown values ──
+  const itemDiscountTotal = regularItems.reduce((s, i) => s + (i.discount || 0), 0);
+  const subtotal    = sale.subtotal || 0;
+  const extraTotal  = sale.extraTotal || 0;
+  const saleDiscount = sale.discount || 0;
+  const tax = sale.tax || 0;
+
   const invoiceNo = sale.invoiceNo
     ? sale.invoiceNo.toString().replace(/\D/g, "").padStart(4, "0")
     : "";
@@ -89,14 +96,14 @@ const printInvoice = (sale) => {
 
   // ── Extra item rows (additional charges) ─────────────────────
   const extraRows = extraItems.map(extra => `
-    <tr style="background:#f0f4ff;">
+    <tr>
       <td style="border:1px solid ${RED};padding:5px 5px;font-size:11px;text-align:center;height:28px;vertical-align:middle;color:#666;">
         ${""}
       </td>
       <td style="border:1px solid ${RED};padding:5px 5px;font-size:11px;text-align:center;height:28px;vertical-align:middle;color:#666;">
         ${""}
       </td>
-      <td style="border:1px solid ${RED};padding:5px 8px;font-size:11px;text-align:left;height:28px;vertical-align:middle;color:#1a3a8f;font-style:italic;">
+      <td style="border:1px solid ${RED};padding:5px 8px;font-size:11px;text-align:left;height:28px;vertical-align:middle;font-style:italic;">
         ${extra.label || ""}
       </td>
       <td style="border:1px solid ${RED};padding:5px 5px;font-size:11px;text-align:center;height:28px;vertical-align:middle;color:#666;">
@@ -105,7 +112,7 @@ const printInvoice = (sale) => {
       <td style="border:1px solid ${RED};padding:5px 5px;font-size:11px;text-align:right;height:28px;vertical-align:middle;color:#666;">
         ${""}
       </td>
-      <td style="border:1px solid ${RED};padding:5px 5px;font-size:11px;text-align:right;height:28px;vertical-align:middle;color:#1a3a8f;font-weight:700;">
+      <td style="border:1px solid ${RED};padding:5px 5px;font-size:11px;text-align:right;height:28px;vertical-align:middle;font-weight:700;">
         ${extra.price ? Number(extra.price).toLocaleString() : ""}
       </td>
     </tr>`).join("");
@@ -120,6 +127,37 @@ const printInvoice = (sale) => {
       <td style="border:1px solid ${RED};padding:5px 5px;height:28px;">&nbsp;</td>
       <td style="border:1px solid ${RED};padding:5px 5px;height:28px;">&nbsp;</td>
     </tr>`).join("");
+
+  // ── Summary / total breakdown rows ─────────────────────────────
+  const summaryRows = `
+    ${itemDiscountTotal > 0 ? `
+    <tr>
+      <td colspan="5" style="border:1px solid ${RED};padding:5px 10px;font-weight:600;text-align:right;font-size:11px;background:#fafafa;border-right:none;color:#b8860b;">Item Discounts</td>
+      <td style="border:1px solid ${RED};padding:5px 5px;font-weight:700;text-align:right;font-size:11px;color:#b8860b;">
+        - ${Number(itemDiscountTotal).toLocaleString()}
+      </td>
+    </tr>` : ""}
+   
+    ${saleDiscount > 0 ? `
+    <tr>
+      <td colspan="5" style="border:1px solid ${RED};padding:5px 10px;font-weight:600;text-align:right;font-size:11px;background:#fafafa;border-right:none;color:#b8860b;">Extra Discount</td>
+      <td style="border:1px solid ${RED};padding:5px 5px;font-weight:700;text-align:right;font-size:11px;color:#b8860b;">
+        - ${Number(saleDiscount).toLocaleString()}
+      </td>
+    </tr>` : ""}
+    ${tax > 0 ? `
+    <tr>
+      <td colspan="5" style="border:1px solid ${RED};padding:5px 10px;font-weight:600;text-align:right;font-size:11px;background:#fafafa;border-right:none;">Tax</td>
+      <td style="border:1px solid ${RED};padding:5px 5px;font-weight:700;text-align:right;font-size:11px;">
+        ${Number(tax).toLocaleString()}
+      </td>
+    </tr>` : ""}
+    <tr>
+      <td colspan="5" style="border:1px solid ${RED};padding:6px 10px;font-weight:800;text-align:right;font-size:12.5px;background:#fafafa;border-right:none;">Grand Total</td>
+      <td style="border:1px solid ${RED};padding:6px 5px;font-weight:900;text-align:right;font-size:12.5px;color:${RED};">
+        ${grandTotal ? Number(grandTotal).toLocaleString() : ""}
+      </td>
+    </tr>`;
 
   const iframe = document.createElement("iframe");
   iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:820px;height:1100px;border:none;";
@@ -215,12 +253,7 @@ const printInvoice = (sale) => {
       ${itemRows}
       ${extraRows}
       ${emptyRowsHtml}
-      <tr>
-        <td colspan="5" style="border:1px solid ${RED};padding:6px 10px;font-weight:700;text-align:right;font-size:11.5px;background:#fafafa;border-right:none;">Sub Total</td>
-        <td style="border:1px solid ${RED};padding:6px 5px;font-weight:800;text-align:right;font-size:11.5px;">
-          ${grandTotal ? Number(grandTotal).toLocaleString() : ""}
-        </td>
-      </tr>
+      ${summaryRows}
     </tbody>
   </table>
 

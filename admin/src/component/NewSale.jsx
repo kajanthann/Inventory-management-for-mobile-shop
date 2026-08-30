@@ -344,7 +344,7 @@ const NewSale = ({
                 {filteredProducts.length} items
               </span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 max-h-[260px] sm:max-h-[300px] overflow-y-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 max-h-[260px] sm:max-h-[300px] overflow-y-auto">
               {loadingProducts ? (
                 [...Array(6)].map((_, i) => (
                   <div

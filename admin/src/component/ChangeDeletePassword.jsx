@@ -270,7 +270,7 @@ const ChangeDeletePassword = () => {
             <div className="flex items-start gap-3 px-3 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-500/15">
               <FaEnvelope className="text-blue-500 mt-0.5 flex-shrink-0" size={12} />
               <p className="text-xs text-blue-600 dark:text-blue-400">
-                An OTP will be sent to <strong>{import.meta.env.VITE_ADMIN_EMAIL || "your admin email"}</strong> to confirm this change.
+                An OTP will be sent to <strong>your admin email</strong> to confirm this change.
               </p>
             </div>
 

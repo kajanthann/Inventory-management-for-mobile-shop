@@ -26,11 +26,11 @@ const adminSchema = new mongoose.Schema(
 );
 
 // ── Hash deletePassword before save ──────────────────────────────
-adminSchema.pre("save", async function (next) {
+
+adminSchema.pre("save", async function () {
   if (this.isModified("deletePassword") && this.deletePassword) {
     this.deletePassword = await bcrypt.hash(this.deletePassword, 10);
   }
-  next();
 });
 
 const Admin = mongoose.models.Admin || mongoose.model("Admin", adminSchema);

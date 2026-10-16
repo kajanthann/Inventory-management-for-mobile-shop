@@ -70,7 +70,7 @@ const RepairList = ({ repairs, onDelete, onComplete }) => {
   const [priceModal, setPriceModal] = useState(null);
   const [priceInput, setPriceInput] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
-
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const confirmToast = useConfirmToast();
 
   // ── Filtering ─────────────────────────────────────────────────
@@ -158,7 +158,6 @@ const RepairList = ({ repairs, onDelete, onComplete }) => {
           </button>
         )}
       </div>
-
       {/* ── Table ── */}
       <div className="rounded-xl border border-gray-200 dark:border-[#1f1f1f] overflow-hidden bg-white/80 dark:bg-[rgba(17,17,17,0.6)] backdrop-blur-sm">
         <div className="px-4 py-3 border-b border-gray-200 dark:border-[#1f1f1f] flex items-center justify-between">
@@ -289,7 +288,6 @@ const RepairList = ({ repairs, onDelete, onComplete }) => {
           </table>
         </div>
       </div>
-
       {/* ═══════════ COMPLETE / RETURN MODAL ═══════════ */}
       {priceModal && (
         <div className="fixed inset-0 bg-black/60 dark:bg-black/75 flex items-center justify-center z-50 p-4">
@@ -404,7 +402,6 @@ const RepairList = ({ repairs, onDelete, onComplete }) => {
           </div>
         </div>
       )}
-
       {/* ═══════════ VIEW DC FORM MODAL ═══════════ */}
       {viewItem && (
         <div className="fixed inset-0 bg-black/60 dark:bg-black/75 flex items-center justify-center z-50 p-4">
@@ -583,9 +580,8 @@ const RepairList = ({ repairs, onDelete, onComplete }) => {
           </div>
         </div>
       )}
-
       {/* ═══════════ DELETE CONFIRM MODAL ═══════════ */}
-      <ConfirmDeleteModal
+     <ConfirmDeleteModal
         open={!!deleteTarget}
         title="Delete Repair Record"
         message={
@@ -593,8 +589,11 @@ const RepairList = ({ repairs, onDelete, onComplete }) => {
             ? `Delete DC ${deleteTarget.collectionNo} (${deleteTarget.name})? This cannot be undone.`
             : ""
         }
-        onConfirm={() => {
-          onDelete(deleteTarget._id);
+        variant="delete"
+        actionLabel="Delete"
+        loading={deleteLoading}
+        onConfirm={(password) => {
+          onDelete(deleteTarget._id, password);
           setDeleteTarget(null);
         }}
         onCancel={() => setDeleteTarget(null)}

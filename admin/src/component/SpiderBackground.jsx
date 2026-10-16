@@ -1,9 +1,7 @@
 import React, { useContext } from "react";
 import { AppContext } from "../context/AppContext";
 
-// ── Spider SVG ──
 const SpiderWeb = ({ opacity = 0.25, rotate = 0 }) => (
-  
   <svg
     viewBox="0 0 500 500"
     xmlns="http://www.w3.org/2000/svg"
@@ -11,10 +9,10 @@ const SpiderWeb = ({ opacity = 0.25, rotate = 0 }) => (
   >
     {[0,30,60,90,120,150,180,210,240,270,300,330].map((angle, i) => {
       const rad = (angle * Math.PI) / 180;
-      const x2 = 250 + 260 * Math.cos(rad);
-      const y2 = 250 + 260 * Math.sin(rad);
       return (
-        <line key={i} x1="250" y1="250" x2={x2} y2={y2}
+        <line key={i} x1="250" y1="250"
+          x2={250 + 260 * Math.cos(rad)}
+          y2={250 + 260 * Math.sin(rad)}
           stroke={`rgba(180,10,10,${opacity})`} strokeWidth="0.9" />
       );
     })}
@@ -45,7 +43,7 @@ const SpiderWeb = ({ opacity = 0.25, rotate = 0 }) => (
   </svg>
 );
 
-// ── Random generator ──
+// ── Seeded random ──────────────────────────────────────────────────
 const seededRand = (seed) => {
   let s = seed;
   return () => {
@@ -54,71 +52,103 @@ const seededRand = (seed) => {
   };
 };
 
-const generateSpiders = (count = 10) => {
-  const rand = seededRand(42);
-  return Array.from({ length: count }, (_, i) => ({
-    id: i,
-    top: `${5 + rand() * 85}%`,
-    left: `${3 + rand() * 90}%`,
-    size: 120 + rand() * 220,
-    rotate: Math.floor(rand() * 360),
-    opacity: 0.08 + rand() * 0.9,
-  }));
+// ── Grid-based placement — NO overlapping ─────────────────────────
+// Divides the viewport into a cols×rows grid.
+// Each spider is placed in one cell with a small random jitter
+// so they stay evenly spread and never touch each other.
+const generateSpiders = () => {
+  const rand = seededRand(99);
+
+  const COLS = 3;
+  const ROWS = 3;
+
+  // ── Predefined size tiers — mix of big, medium, small ─────────
+  const SIZE_TIERS = [
+    300,  // big
+    160,  // small
+    400,  // very big
+    130,  // tiny
+  ];
+
+  const spiders = [];
+
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      const idx   = row * COLS + col;
+      const cellW = 100 / COLS;
+      const cellH = 100 / ROWS;
+
+      const centerX = col * cellW + cellW / 2;
+      const centerY = row * cellH + cellH / 2;
+
+      const jitterX = (rand() - 0.5) * cellW * 0.4;
+      const jitterY = (rand() - 0.5) * cellH * 0.4;
+
+      spiders.push({
+        id:      idx,
+        left:    `${Math.min(Math.max(centerX + jitterX, 5), 93)}%`,
+        top:     `${Math.min(Math.max(centerY + jitterY, 5), 93)}%`,
+        size:    SIZE_TIERS[idx],          // ← each spider gets its own tier
+        rotate:  Math.floor(rand() * 360),
+        opacity: 0.60 + rand() * 0.12,    // 0.10 – 0.22 subtle
+      });
+    }
+  }
+
+  return spiders;
 };
 
-const SPIDERS = generateSpiders(10);
+const SPIDERS = generateSpiders();
 
-// ── Main Background Component ──
+// ── Main Background Component ──────────────────────────────────────
 const SpiderBackground = () => {
   const { theme } = useContext(AppContext);
 
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+    <div className="absolute inset-0 pointer-events-none overflow-hidden bg-white dark:bg-[#0a0a0a]">
 
       {SPIDERS.map(({ id, top, left, size, rotate, opacity }) => (
         <div
           key={id}
           style={{
-            position: "absolute",
+            position:  "absolute",
             top,
             left,
-            width: `${size}px`,
-            height: `${size}px`,
+            width:     `${size}px`,
+            height:    `${size}px`,
             transform: "translate(-50%, -50%)",
-            opacity: theme === "dark" ? opacity : opacity * 0.9,
+            opacity:   theme === "dark" ? opacity : opacity * 0.7,
           }}
         >
           <SpiderWeb rotate={rotate} opacity={1} />
         </div>
       ))}
 
-      {/* Glow effects */}
+      {/* Subtle glow blobs */}
       <div style={{
-        position: "absolute",
-        top: "10%",
-        right: "15%",
-        width: 250,
-        height: 250,
+        position:     "absolute",
+        top:          "10%",
+        right:        "15%",
+        width:        220,
+        height:       220,
         borderRadius: "50%",
-        background: theme === "dark"
-          ? "rgba(180,10,10,0.06)"
-          : "rgba(180,10,10,0.03)",
+        background:   theme === "dark"
+          ? "rgba(180,10,10,0.05)"
+          : "rgba(180,10,10,0.02)",
         filter: "blur(55px)",
       }} />
-
       <div style={{
-        position: "absolute",
-        bottom: "15%",
-        left: "20%",
-        width: 180,
-        height: 180,
+        position:     "absolute",
+        bottom:       "15%",
+        left:         "20%",
+        width:        160,
+        height:       160,
         borderRadius: "50%",
-        background: theme === "dark"
-          ? "rgba(180,10,10,0.04)"
-          : "rgba(180,10,10,0.02)",
+        background:   theme === "dark"
+          ? "rgba(180,10,10,0.03)"
+          : "rgba(180,10,10,0.015)",
         filter: "blur(45px)",
       }} />
-
     </div>
   );
 };

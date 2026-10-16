@@ -1,18 +1,23 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const adminSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, unique: true },
 
-    // OTP fields (temporary)
-    otp: { type: String },
-    otpExpiresAt: { type: Date },
-    otpAttempts: { type: Number, default: 0 },
+    // ── Delete password (hashed) ──────────────────────────────
+    deletePassword: { type: String, default: null },
+
+    // ── OTP fields (login + change password) ─────────────────
+    otp:          { type: String  },
+    otpExpiresAt: { type: Date    },
+    otpAttempts:  { type: Number, default: 0 },
+    otpPurpose:   { type: String, enum: ["login", "changeDeletePassword"], default: "login" },
 
     loginHistory: [
       {
-        time: { type: Date, default: Date.now },
-        ipAddress: String,
+        time:       { type: Date, default: Date.now },
+        ipAddress:  String,
         deviceInfo: String,
       },
     ],
@@ -20,7 +25,13 @@ const adminSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Admin =
-  mongoose.models.Admin || mongoose.model("Admin", adminSchema);
+// ── Hash deletePassword before save ──────────────────────────────
+adminSchema.pre("save", async function (next) {
+  if (this.isModified("deletePassword") && this.deletePassword) {
+    this.deletePassword = await bcrypt.hash(this.deletePassword, 10);
+  }
+  next();
+});
 
+const Admin = mongoose.models.Admin || mongoose.model("Admin", adminSchema);
 export default Admin;

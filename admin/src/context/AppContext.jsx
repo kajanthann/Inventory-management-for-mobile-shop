@@ -21,16 +21,6 @@ const AppContextProvider = ({ children }) => {
   );
 
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
-  const ADMIN_DELETE_PASSWORD = import.meta.env.VITE_ADMIN_DELETE_PASSWORD;
-
-  // Verifies the admin delete password. Centralized so no component reads env directly.
-const verifyAdminPassword = (password) => {
-  if (!ADMIN_DELETE_PASSWORD) {
-    console.warn("VITE_ADMIN_DELETE_PASSWORD is not set in .env");
-    return false;
-  }
-  return password === ADMIN_DELETE_PASSWORD;
-};
 
   // ✅ MEMOIZED AXIOS
   const axiosInstance = useMemo(() => {
@@ -112,7 +102,6 @@ const verifyAdminPassword = (password) => {
         loading,
         setLoading,
         products,
-        verifyAdminPassword,
       }}
     >
       {children}

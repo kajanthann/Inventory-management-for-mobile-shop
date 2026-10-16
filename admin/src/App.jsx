@@ -8,11 +8,14 @@ import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import Repair from "./pages/Repair";
 import Sales from "./pages/Sales";
+import Settings from "./pages/Settings";
+import Reports from "./pages/Reports";
 import SpiderBackground from "./component/SpiderBackground";
 
 import { AppContext } from "./context/AppContext";
 import SmartSpiderInvoice from "./component/BillingModal";
 import InvoicePrint from "./pages/InvoicePrint";
+import PreOrder from "./pages/PreOrder";
 
 /* ─────────────────────────────
    🔐 PROTECTED ROUTE
@@ -68,6 +71,9 @@ const AppLayout = () => {
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/sales" element={<Sales />} />
             <Route path="/repair" element={<Repair />} />
+            <Route path="/pre-order" element={<PreOrder />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/reports" element={<Reports />} />
             <Route path="/bill" element={<SmartSpiderInvoice />} />
             <Route path="/sales/invoice" element={<InvoicePrint />} />
           </Routes>

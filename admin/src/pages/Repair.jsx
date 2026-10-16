@@ -33,7 +33,6 @@ const Repair = () => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
-
   // ── FETCH REPAIRS ─────────────────────────────
   const fetchRepairs = async () => {
     try {
@@ -91,10 +90,7 @@ const Repair = () => {
         price: null,
       };
 
-      const { data } = await axiosInstance.post(
-        "/api/repairs/create",
-        payload
-      );
+      const { data } = await axiosInstance.post("/api/repairs/create", payload);
 
       if (data.success) {
         setRepairs((prev) => [data.repair, ...prev]);
@@ -112,22 +108,21 @@ const Repair = () => {
     }
   };
 
-  // ── DELETE REPAIR ─────────────────────────────
-  const handleDelete = async (id) => {
+const handleDelete = async (id, password) => {
     try {
-      const { data } = await axiosInstance.delete(`/api/repairs/${id}`);
-
+      const { data } = await axiosInstance.delete(`/api/repairs/${id}`, {
+        data: { deletePassword: password },
+      });
       if (data.success) {
         setRepairs((prev) => prev.filter((r) => r._id !== id));
+        toast.success("Repair record deleted");
       } else {
-        toast.error(data.message);
+        toast.error(data.message || "Delete failed");
       }
     } catch (err) {
-      console.log("Delete failed",err);
+      toast.error(err.response?.data?.message || "Delete failed");
     }
   };
-
-
 
   // ── UPDATE REPAIR (DONE / RETURNED) ─────────────────────────────
   const handleComplete = async (id, price, status = "done") => {
@@ -138,12 +133,10 @@ const Repair = () => {
       });
 
       if (data.success) {
-        setRepairs((prev) =>
-          prev.map((r) => (r._id === id ? data.repair : r))
-        );
+        setRepairs((prev) => prev.map((r) => (r._id === id ? data.repair : r)));
 
         toast.success(
-          status === "done" ? "Marked as done" : "Returned to customer"
+          status === "done" ? "Marked as done" : "Returned to customer",
         );
       } else {
         toast.error(data.message);
@@ -154,12 +147,12 @@ const Repair = () => {
     }
   };
 
-  if (loading) {<Loading />}
+  if (loading) {
+    <Loading />;
+  }
 
   return (
     <div className="text-gray-900 dark:text-white space-y-5">
-
-
       {/* ── STATS ── */}
       <div className="flex flex-col sm:grid sm:grid-cols-3 gap-4">
         {[

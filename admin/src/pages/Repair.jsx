@@ -147,9 +147,7 @@ const handleDelete = async (id, password) => {
     }
   };
 
-  if (loading) {
-    <Loading />;
-  }
+  if (loading) return <Loading />; 
 
   return (
     <div className="text-gray-900 dark:text-white space-y-5">

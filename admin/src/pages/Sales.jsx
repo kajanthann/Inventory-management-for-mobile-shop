@@ -40,7 +40,7 @@ const Sales = () => {
     axiosInstance,
     products,
     fetchProducts,
-    loadingProducts,
+    loading:loadingProducts,
   } = useContext(AppContext);
 
   const [sales, setSales]               = useState([]);

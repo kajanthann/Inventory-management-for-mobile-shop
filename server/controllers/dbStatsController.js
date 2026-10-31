@@ -2,32 +2,60 @@ import mongoose from "mongoose";
 
 export const getDbStats = async (req, res) => {
   try {
+    // Check MongoDB connection
+    if (
+      mongoose.connection.readyState !== 1 ||
+      !mongoose.connection.db
+    ) {
+      return res.status(503).json({
+        success: false,
+        message: "Database is not connected",
+      });
+    }
+
     const db = mongoose.connection.db;
 
     // Get MongoDB database stats
     const stats = await db.stats();
 
-    // Convert bytes → MB
-    const usedMB = stats.storageSize / (1024 * 1024);
-    const dataMB = stats.dataSize / (1024 * 1024);
+    // Convert bytes to MB
+    const storageSizeMB = Number(
+      (stats.storageSize / (1024 * 1024)).toFixed(2)
+    );
 
-    const LIMIT_MB = 512; // MongoDB Atlas M0 limit
+    const dataSizeMB = Number(
+      (stats.dataSize / (1024 * 1024)).toFixed(2)
+    );
 
-    const usagePercent = (usedMB / LIMIT_MB) * 100;
+    const limitMB = 512; // Atlas M0 storage limit
 
-    res.json({
+    // Calculate storage usage percentage
+    const usagePercent = Number(
+      ((storageSizeMB / limitMB) * 100).toFixed(2)
+    );
+
+    // Calculate remaining storage
+    const freeSpaceMB = Number(
+      (limitMB - storageSizeMB).toFixed(2)
+    );
+
+    return res.status(200).json({
+      success: true,
       dbName: stats.db,
       collections: stats.collections,
       objects: stats.objects,
-      dataSizeMB: Number(dataMB.toFixed(2)),
-      storageSizeMB: Number(usedMB.toFixed(2)),
-      limitMB: LIMIT_MB,
-      usagePercent: Number(usagePercent.toFixed(2)),
-      freeSpaceMB: Number((LIMIT_MB - usedMB).toFixed(2)),
+      dataSizeMB,
+      storageSizeMB,
+      limitMB,
+      usagePercent,
+      freeSpaceMB,
     });
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to get DB stats",
+    console.error("Failed to get DB stats:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get database statistics",
       error: error.message,
     });
   }

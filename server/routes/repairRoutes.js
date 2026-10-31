@@ -5,8 +5,12 @@ import {
   updateRepair,
   deleteRepair,
 } from "../controllers/repairController.js";
+import authAdmin from "../middleware/authAdmin.js";
+
 
 const repairRouter = express.Router();
+
+repairRouter.use(authAdmin);
 
 repairRouter.post("/create", createRepair);
 repairRouter.get("/", getRepairs);

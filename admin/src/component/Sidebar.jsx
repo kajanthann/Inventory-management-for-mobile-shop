@@ -77,6 +77,27 @@ const SideBar = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+  let cancelled = false;
+  let timer;
+  const delays = [0, 2000, 5000, 10000, 20000];
+
+  const tryFetch = async (i = 0) => {
+    try {
+      const { data } = await axiosInstance.get("/api/db/stats");
+      if (!cancelled) setDbStats(data);
+    } catch {
+      if (!cancelled && i < delays.length - 1) {
+        timer = setTimeout(() => tryFetch(i + 1), delays[i + 1]);
+      }
+    }
+  };
+  tryFetch();
+  fetchLowStock();
+
+  return () => { cancelled = true; clearTimeout(timer); };
+}, []);
+
   // Close the settings modal with Escape.
   useEffect(() => {
     if (!settingsOpen) return undefined;

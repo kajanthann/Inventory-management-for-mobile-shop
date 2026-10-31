@@ -1,6 +1,4 @@
 import express from 'express';
-import mongoose from 'mongoose';
-import cron from "node-cron";
 import reportRouter from "./routes/reportRouter.js";
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -12,11 +10,28 @@ import adminRouter from './routes/adminRoute.js';
 import cookieParser from "cookie-parser";
 import DbStatsRouter from './routes/dbStatsRoute.js';
 import preOrderRouter from './routes/preOrderRouter.js';
+import cron from "node-cron";
 import { autoGenerateMonthlyReports } from "./controllers/reportController.js";
 
 
 dotenv.config();
-connectDB();
+
+const start = async () => {
+  await connectDB();                       // ← await!
+  app.listen(process.env.PORT || 5000, () =>
+    console.log("Server ready")
+  );
+};
+start();
+
+cron.schedule(
+  "59 23 28-31 * *",
+  async () => {
+    const t = new Date(); t.setDate(t.getDate() + 1);
+    if (t.getDate() === 1) await autoGenerateMonthlyReports();
+  },
+  { timezone: "Asia/Colombo" }             // ← timezone
+);
 
 const frontendUrl = process.env.FRONTEND_URL;
 

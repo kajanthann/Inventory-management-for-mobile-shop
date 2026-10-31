@@ -7,8 +7,12 @@ import {
   getProductById,
 } from "../controllers/productController.js";
 import verifyDeletePassword from "../middleware/verifyDeletePassword.js";
+import authAdmin from "../middleware/authAdmin.js";
+
 
 const productRouter = express.Router();
+
+productRouter.use(authAdmin);
 
 productRouter.post("/add", addProduct);
 productRouter.get("/all", getProducts);

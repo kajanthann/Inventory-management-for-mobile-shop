@@ -20,6 +20,7 @@ import {
   FaTruck,
   FaCog,
   FaDatabase,
+  FaFileAlt,
 } from "react-icons/fa";
 
 import ChangeDeletePassword from "./ChangeDeletePassword";
@@ -40,7 +41,7 @@ const SideBar = () => {
     { name: "Sales", icon: <FaShoppingCart />, path: "/sales" },
     { name: "Repair", icon: <FaTools />, path: "/repair" },
     { name: "Pre-Order", icon: <FaTruck />, path: "/pre-order" },
-    { name: "Reports", icon: <FaDatabase />, path: "/reports" },
+    { name: "Reports", icon: <FaFileAlt />, path: "/reports" },
     // { name: "Settings", icon: <FaCog />, path: "/settings" },
   ];
 

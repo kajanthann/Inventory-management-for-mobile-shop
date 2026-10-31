@@ -1,6 +1,25 @@
 import "dotenv/config";
 import nodemailer from "nodemailer";
 
+const sendEmail = async (to, subject, html, attachments = []) => {
+  try {
+    const result = await transporter.sendMail({
+      from: `"SmartSpider System" <${process.env.EMAIL_SENDER}>`,
+      to, subject, html, attachments,
+    });
+    console.log("Email sent:", result.messageId);
+    console.log("USER:", JSON.stringify(process.env.EMAIL_USER));
+    console.log("PASS length:", process.env.EMAIL_PASS?.length);
+    return result;
+  } catch (error) {
+    console.error("Email sending failed:", error.message);
+    throw error;
+  }
+};
+
+export default sendEmail;
+
+
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
@@ -15,22 +34,3 @@ export const verifyEmailConnection = async () => {
   await transporter.verify();
   console.log("Gmail SMTP authentication successful");
 };
-
-const sendEmail = async (to, subject, html) => {
-  try {
-    const result = await transporter.sendMail({
-      from: `"SmartSpider System" <${process.env.EMAIL_SENDER}>`,
-      to,
-      subject,
-      html,
-    });
-
-    console.log("Email sent:", result.messageId);
-    return result;
-  } catch (error) {
-    console.error("Email sending failed:", error.message);
-    throw error;
-  }
-};
-
-export default sendEmail;

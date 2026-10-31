@@ -271,3 +271,38 @@ export const deleteReport = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+export const sendReportPdf = async (req, res) => {
+  try {
+    const { monthLabel, pdfBase64 } = req.body;
+
+    if (!pdfBase64 || !monthLabel)
+      return res.status(400).json({ success: false, message: "PDF data required" });
+
+    const base = await reportModel.findById(req.params.id);
+    if (!base) return res.status(404).json({ success: false, message: "Report not found" });
+
+    const to = process.env.EMAIL_USER;   // ← always this address
+    if (!to) return res.status(500).json({ success: false, message: "EMAIL_USER not set in .env" });
+
+    await sendEmail(
+      to,
+      `📊 SmartSpider — ${monthLabel} Full Report`,
+      `<p>Please find the <b>${monthLabel}</b> Sales &amp; Repair report attached.</p>`,
+      [{
+        filename: `SmartSpider-${monthLabel.replace(/\s+/g, "-")}-Report.pdf`,
+        content: pdfBase64,
+        encoding: "base64",
+      }]
+    );
+
+    await reportModel.updateMany(
+      { month: base.month, year: base.year },
+      { emailSent: true, emailSentAt: new Date() }
+    );
+
+    res.json({ success: true, message: "Report emailed successfully!" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

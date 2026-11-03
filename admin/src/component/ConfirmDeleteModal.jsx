@@ -3,12 +3,6 @@ import {
   FaTrash, FaEdit, FaTimes, FaLock, FaEye, FaEyeSlash,
 } from "react-icons/fa";
 import { AppContext } from "../context/AppContext";
-import toast from "react-hot-toast";
-
-const toastStyle = {
-  background: "#1a1a1a", color: "#fff",
-  border: "1px solid #2a2a2a", borderRadius: "10px", fontSize: "13px",
-};
 
 const ConfirmDeleteModal = ({
   open,
@@ -29,40 +23,43 @@ const ConfirmDeleteModal = ({
 
   if (!open) return null;
 
-  const handleConfirm = async (e) => {
-    e.preventDefault();
-    if (!password.trim()) { setError("Please enter your password."); return; }
-    setError("");
+  const reset = () => { setPassword(""); setError(""); setShowPassword(false); };
+
+ const handleConfirm = async (e) => {
+  e.preventDefault();
+  if (!password.trim()) { setError("Please enter your password."); return; }
+  setError("");
+  setVerifying(true);
+
+  try {
+    // Edit & Delete rendukkum munnaadi password verify
+    const { data } = await axiosInstance.post("/api/admin/delete-password/verify", { password });
+
+    if (!data.success) {
+      setError("Incorrect password. Try again.");
+      return;
+    }
 
     if (variant === "edit") {
-      // ── Verify password via backend before opening edit form ──
-      setVerifying(true);
-      try {
-        const { data } = await axiosInstance.post("/api/admin/delete-password/verify", {
-          password,
-        });
-        if (data.success) {
-          // password correct → let parent open edit form
-          setPassword(""); setShowPassword(false);
-          onConfirm();
-        } else {
-          setError("Incorrect password. Try again.");
-        }
-      } catch (err) {
-        setError(err.response?.data?.message || "Verification failed.");
-      } finally {
-        setVerifying(false);
-      }
+      const pw = password;
+      reset();
+      onConfirm(pw);
     } else {
-      // ── Delete: pass password to parent (backend verifies via middleware) ──
-      onConfirm(password);
+      const result = await onConfirm(password);
+      if (result && result.ok === false) {
+        setError(result.message || "Delete failed.");
+      } else {
+        reset();
+      }
     }
-  };
+  } catch (err) {
+    setError(err.response?.data?.message || "Verification failed.");
+  } finally {
+    setVerifying(false);
+  }
+};
 
-  const handleCancel = () => {
-    setPassword(""); setError(""); setShowPassword(false);
-    onCancel();
-  };
+  const handleCancel = () => { reset(); onCancel(); };
 
   const isEdit      = variant === "edit";
   const accentColor = isEdit ? "#b8860b" : "#b00000";
@@ -94,13 +91,11 @@ const ConfirmDeleteModal = ({
         </div>
 
         <form onSubmit={handleConfirm} className="p-5 space-y-4">
-          {/* Message */}
           <p className="text-sm text-gray-500 dark:text-gray-400">{message}</p>
 
-          {/* Password input */}
           <div>
             <label className="text-[11px] text-gray-400 dark:text-gray-500 font-semibold tracking-wider block mb-1.5">
-              ADMIN DELETE PASSWORD
+              ADMIN PASSWORD
             </label>
             <div className="relative">
               <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-xs" />
@@ -109,7 +104,7 @@ const ConfirmDeleteModal = ({
                 autoFocus
                 value={password}
                 onChange={e => { setPassword(e.target.value); setError(""); }}
-                placeholder="Enter admin delete password"
+                placeholder="Enter admin password"
                 className="w-full pl-8 pr-9 py-2 rounded-lg text-sm border bg-gray-50 dark:bg-[#0a0a0a] border-gray-200 dark:border-[#1f1f1f] text-gray-900 dark:text-white outline-none focus:border-[#b00000] transition"
               />
               <button type="button"
@@ -122,7 +117,6 @@ const ConfirmDeleteModal = ({
             {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
           </div>
 
-          {/* Action buttons */}
           <div className="flex gap-3">
             <button type="button" onClick={handleCancel}
               className="flex-1 py-2 rounded-lg text-sm border border-gray-300 dark:border-[#1f1f1f] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition">

@@ -8,7 +8,7 @@ import {
   deleteReport,
 } from "../controllers/reportController.js";
 import authAdmin from "../middleware/authAdmin.js";
-import verifyDeletePassword from "../middleware/verifyDeletePassword.js";
+import verifyAdminPassword from "../middleware/verifyAdminPassword.js";
 
 const reportRouter = express.Router();
 
@@ -19,6 +19,6 @@ reportRouter.get   ("/:id", getReportById);
 reportRouter.post  ("/generate", manualGenerateReport);
 reportRouter.post  ("/:id/send-email", sendReportEmailManual);
 reportRouter.post  ("/:id/send-pdf", sendReportPdf);
-reportRouter.delete("/:id", verifyDeletePassword, deleteReport);
+reportRouter.delete("/:id", verifyAdminPassword, deleteReport);
 
 export default reportRouter;

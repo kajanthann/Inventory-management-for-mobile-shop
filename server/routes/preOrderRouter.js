@@ -7,7 +7,7 @@ import {
   markFullPayment,
   deletePreOrder,
 } from "../controllers/preOrderController.js";
-import verifyDeletePassword from "../middleware/verifyDeletePassword.js";
+import verifyAdminPassword from "../middleware/verifyAdminPassword.js";
 import authAdmin from "../middleware/authAdmin.js";
 
 const preOrderRouter = express.Router();
@@ -19,6 +19,6 @@ preOrderRouter.get   ("/all", getPreOrders);
 preOrderRouter.get   ("/:id", getPreOrderById);
 preOrderRouter.patch ("/:id/deliver", markDelivered);
 preOrderRouter.patch ("/:id/fullpayment", markFullPayment);
-preOrderRouter.delete("/:id", verifyDeletePassword, deletePreOrder);
+preOrderRouter.delete("/:id", verifyAdminPassword , deletePreOrder);
 
 export default preOrderRouter;

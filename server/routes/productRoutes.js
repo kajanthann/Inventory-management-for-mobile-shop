@@ -6,9 +6,8 @@ import {
   getProducts,
   getProductById,
 } from "../controllers/productController.js";
-import verifyDeletePassword from "../middleware/verifyDeletePassword.js";
+import verifyAdminPassword from "../middleware/verifyAdminPassword.js";
 import authAdmin from "../middleware/authAdmin.js";
-
 
 const productRouter = express.Router();
 
@@ -17,7 +16,7 @@ productRouter.use(authAdmin);
 productRouter.post("/add", addProduct);
 productRouter.get("/all", getProducts);
 productRouter.get("/:id", getProductById);
-productRouter.put("/:id", updateProduct);
-productRouter.delete("/:id", verifyDeletePassword, deleteProduct);
+productRouter.put("/:id", verifyAdminPassword, updateProduct);     
+productRouter.delete("/:id", verifyAdminPassword, deleteProduct);  
 
 export default productRouter;

@@ -582,22 +582,21 @@ const RepairList = ({ repairs, onDelete, onComplete }) => {
       )}
       {/* ═══════════ DELETE CONFIRM MODAL ═══════════ */}
      <ConfirmDeleteModal
-        open={!!deleteTarget}
-        title="Delete Repair Record"
-        message={
-          deleteTarget
-            ? `Delete DC ${deleteTarget.collectionNo} (${deleteTarget.name})? This cannot be undone.`
-            : ""
-        }
-        variant="delete"
-        actionLabel="Delete"
-        loading={deleteLoading}
-        onConfirm={(password) => {
-          onDelete(deleteTarget._id, password);
-          setDeleteTarget(null);
-        }}
-        onCancel={() => setDeleteTarget(null)}
-      />
+  open={!!deleteTarget}
+  title="Delete Repair Record"
+  message={deleteTarget ? `Delete DC ${deleteTarget.collectionNo} (${deleteTarget.name})? This cannot be undone.` : ""}
+  variant="delete"
+  actionLabel="Delete"
+  loading={deleteLoading}
+  onConfirm={async (password) => {
+    setDeleteLoading(true);
+    const result = await onDelete(deleteTarget._id, password);
+    setDeleteLoading(false);
+    if (result?.ok) setDeleteTarget(null);
+    return result;
+  }}
+  onCancel={() => setDeleteTarget(null)}
+/>
     </>
   );
 };

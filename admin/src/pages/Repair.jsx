@@ -109,20 +109,20 @@ const Repair = () => {
   };
 
 const handleDelete = async (id, password) => {
-    try {
-      const { data } = await axiosInstance.delete(`/api/repairs/${id}`, {
-        data: { deletePassword: password },
-      });
-      if (data.success) {
-        setRepairs((prev) => prev.filter((r) => r._id !== id));
-        toast.success("Repair record deleted");
-      } else {
-        toast.error(data.message || "Delete failed");
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Delete failed");
+  try {
+    const { data } = await axiosInstance.delete(`/api/repairs/${id}`, {
+      headers: { "x-admin-password": password },
+    });
+    if (data.success) {
+      toast.success("Repair deleted");
+      fetchRepairs();          // ungal existing refresh function
+      return { ok: true };
     }
-  };
+    return { ok: false, message: data.message || "Delete failed" };
+  } catch (err) {
+    return { ok: false, message: err.response?.data?.message || "Delete failed" };
+  }
+};
 
   // ── UPDATE REPAIR (DONE / RETURNED) ─────────────────────────────
   const handleComplete = async (id, price, status = "done") => {

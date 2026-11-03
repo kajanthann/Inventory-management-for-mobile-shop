@@ -14,7 +14,6 @@ import {
   FaTimes,
   FaFilter,
 } from "react-icons/fa";
-import { useConfirmToast } from "../hooks/useConfirmToast";
 import ConfirmDeleteModal from "../component/ConfirmDeleteModal";
 
 const Inventory = () => {
@@ -53,8 +52,8 @@ const Inventory = () => {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [editTarget, setEditTarget] = useState(null);
+  const [editPassword, setEditPassword] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const confirmToast = useConfirmToast();
 
   const filtered = (products || []).filter(
     (p) =>
@@ -105,75 +104,84 @@ const Inventory = () => {
     setEditItem(null);
     setOpen(true);
   };
-  const openEdit = (p) => {
-    setForm({ ...p });
-    setEditItem(p._id);
-    setOpen(true);
-  };
-  const closeModal = () => {
-    setOpen(false);
-    setViewItem(null);
-  };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = {
-        name: form.name,
-        imei: form.imei,
-        category: form.category,
-        qty: Number(form.qty),
-        cost: Number(form.cost),
-        price: Number(form.price),
-        description: form.description,
-      };
-      if (editItem) {
-        confirmToast("Update this product?", async () => {
-          const { data } = await axiosInstance.put(
-            `/api/products/${editItem}`,
-            payload,
-          );
-          if (data.success) {
-            toast.success("Product updated");
-            fetchProducts();
-            closeModal();
-          } else toast.error(data.message);
-        });
-        return;
-      } else {
-        const { data } = await axiosInstance.post("/api/products/add", payload);
-        if (data.success) {
-          toast.success("Product added");
-          fetchProducts();
-        } else toast.error(data.message);
-      }
-      closeModal();
-    } catch (err) {
-      toast.error("Save failed");
-      console.log(err);
-    }
-  };
+  const openEdit = (p, password) => {
+  setForm({ ...p });
+  setEditItem(p._id);
+  setEditPassword(password);   // verified password, PUT-ku header-la pogum
+  setOpen(true);
+};
 
-  // ── handleDelete — receives password, sends to backend ────────────
-  const handleDelete = async (_id, password) => {
-    setDeleteLoading(true);
-    try {
-      const { data } = await axiosInstance.delete(`/api/products/${_id}`, {
-        data: { deletePassword: password },
-      });
+const closeModal = () => {
+  setOpen(false);
+  setViewItem(null);
+  setEditPassword("");
+};
+
+const handleSave = async (e) => {
+  e.preventDefault();
+  try {
+    const payload = {
+      name: form.name,
+      imei: form.imei,
+      category: form.category,
+      qty: Number(form.qty),
+      cost: Number(form.cost),
+      price: Number(form.price),
+      description: form.description,
+    };
+
+    if (editItem) {
+      // Password already modal-la verify aachu, so extra confirm toast illa
+      const { data } = await axiosInstance.put(
+        `/api/products/${editItem}`,
+        payload,
+        { headers: { "x-admin-password": editPassword } },
+      );
       if (data.success) {
-        toast.success("Product deleted");
+        toast.success("Product updated");
         fetchProducts();
-        setDeleteTarget(null);
+        closeModal();
       } else {
-        toast.error(data.message || "Delete failed");
+        toast.error(data.message);
       }
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Delete failed");
-    } finally {
-      setDeleteLoading(false);
+      return;
     }
-  };
+
+    const { data } = await axiosInstance.post("/api/products/add", payload);
+    if (data.success) {
+      toast.success("Product added");
+      fetchProducts();
+    } else {
+      toast.error(data.message);
+    }
+    closeModal();
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Save failed");
+    console.log(err);
+  }
+};
+
+// Delete: { ok, message } return pannum, modal error kaattum
+const handleDelete = async (_id, password) => {
+  setDeleteLoading(true);
+  try {
+    const { data } = await axiosInstance.delete(`/api/products/${_id}`, {
+      headers: { "x-admin-password": password },
+    });
+    if (data.success) {
+      toast.success("Product deleted");
+      fetchProducts();
+      setDeleteTarget(null);
+      return { ok: true };
+    }
+    return { ok: false, message: data.message || "Delete failed" };
+  } catch (err) {
+    return { ok: false, message: err.response?.data?.message || "Delete failed" };
+  } finally {
+    setDeleteLoading(false);
+  }
+};
 
   const f = (v) => `Rs ${Number(v).toLocaleString()}`;
 
@@ -555,33 +563,28 @@ const Inventory = () => {
         </div>
       )}
      <ConfirmDeleteModal
-        open={!!deleteTarget}
-        title="Delete Product"
-        message={
-          deleteTarget
-            ? `Delete "${deleteTarget.name}"? This cannot be undone.`
-            : ""
-        }
-        variant="delete"
-        actionLabel="Delete"
-        loading={deleteLoading}
-        onConfirm={(password) => handleDelete(deleteTarget._id, password)}
-        onCancel={() => setDeleteTarget(null)}
-      />
-     <ConfirmDeleteModal
-        open={!!editTarget}
-        title="Confirm Edit Access"
-        message={
-          editTarget ? `Enter admin password to edit "${editTarget.name}".` : ""
-        }
-        variant="edit"
-        actionLabel="Edit"
-        onConfirm={() => {
-          openEdit(editTarget); // ← password already verified inside modal
-          setEditTarget(null);
-        }}
-        onCancel={() => setEditTarget(null)}
-      />
+  open={!!deleteTarget}
+  title="Delete Product"
+  message={deleteTarget ? `Delete "${deleteTarget.name}"? This cannot be undone.` : ""}
+  variant="delete"
+  actionLabel="Delete"
+  loading={deleteLoading}
+  onConfirm={(password) => handleDelete(deleteTarget._id, password)}
+  onCancel={() => setDeleteTarget(null)}
+/>
+
+<ConfirmDeleteModal
+  open={!!editTarget}
+  title="Confirm Edit Access"
+  message={editTarget ? `Enter admin password to edit "${editTarget.name}".` : ""}
+  variant="edit"
+  actionLabel="Edit"
+  onConfirm={(password) => {
+    openEdit(editTarget, password);   // verified password-a edit form-ku kudukkum
+    setEditTarget(null);
+  }}
+  onCancel={() => setEditTarget(null)}
+/>
     </div>
   );
 };

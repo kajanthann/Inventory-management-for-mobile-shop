@@ -164,20 +164,22 @@ const handleFullPayment = (id) => {
 
   // ── Delete ───────────────────────────────────────────────────
   const handleDelete = async (id, password) => {
-    setDeleteLoading(true);
-    try {
-      const { data } = await axiosInstance.delete(`/api/preorders/${id}`, {
-        data: { deletePassword: password },
-      });
-      if (data.success) {
-        successToast("Pre-order deleted");
-        setOrders(prev => prev.filter(o => o._id !== id));
-        setDeleteTarget(null);
-      } else errorToast(data.message);
-    } catch (err) {
-      errorToast(err.response?.data?.message || "Delete failed");
-    } finally { setDeleteLoading(false); }
-  };
+  setDeleteLoading(true);
+  try {
+    const { data } = await axiosInstance.delete(`/api/preorders/${id}`, {
+      headers: { "x-admin-password": password },
+    });
+    if (data.success) {
+      successToast("Pre-order deleted");
+      setOrders(prev => prev.filter(o => o._id !== id));
+      setDeleteTarget(null);
+      return { ok: true };
+    }
+    return { ok: false, message: data.message || "Delete failed" };
+  } catch (err) {
+    return { ok: false, message: err.response?.data?.message || "Delete failed" };
+  } finally { setDeleteLoading(false); }
+};
 
   // ── Skeleton ─────────────────────────────────────────────────
   if (loading) {

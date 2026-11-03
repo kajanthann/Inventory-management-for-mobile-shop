@@ -158,17 +158,14 @@ const ChangeDeletePassword = () => {
   // ════════════════════════════════════
   if (step === "success") {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-[40vh]">
         <div className={`${cardCls} w-full max-w-[400px] p-8 text-center`}>
           <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-4">
             <FaCheck className="text-green-500" size={28} />
           </div>
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Password Changed!</h2>
           <p className="text-sm text-gray-400 mb-6">Your admin delete password has been updated successfully.</p>
-          <button onClick={() => { setStep("form"); setNewPassword(""); setConfirmPassword(""); setOtp(["","","","","",""]); setOtpError(""); }}
-            className="w-full py-2.5 rounded-lg text-sm font-semibold text-white bg-[#b00000] hover:bg-[#8b0000] transition">
-            Change Again
-          </button>
+        
         </div>
       </div>
     );
@@ -308,9 +305,9 @@ const ChangeDeletePassword = () => {
                   onPaste={handleOtpPaste}
                   className="text-center text-xl font-bold text-gray-900 dark:text-white outline-none rounded-lg transition"
                   style={{
-                    width: "48px", height: "56px",
-                    background:   digit ? "rgba(176,0,0,0.08)" : "var(--input-bg, #f3f4f6)",
-                    border:       `2px solid ${digit ? "#b00000" : otpError ? "#ef4444" : "#d1d5db"}`,
+                    width: "40px", height: "50px",
+                    background:   digit ? "rgba(176,0,0,0)" : "var(--input-bg, #f3f4f6)",
+                    border:       `1px solid ${digit ? "#b00000" : otpError ? "#ef4444" : "#d1d5db"}`,
                     caretColor:   "#b00000",
                   }}
                   onFocus={e => e.target.style.borderColor = "#b00000"}

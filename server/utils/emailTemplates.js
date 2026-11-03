@@ -33,7 +33,6 @@ export const getChangePasswordOtpTemplate = (otp) => {
 
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr><td align="center" style="padding:36px 32px 20px;">
-              <div style="width:68px;height:68px;background:radial-gradient(circle,rgba(176,0,0,0.18),rgba(176,0,0,0.04));border:1px solid rgba(176,0,0,0.28);border-radius:50%;font-size:30px;line-height:68px;text-align:center;margin-bottom:18px;display:inline-block;">🔑</div>
               <h1 style="margin:0 0 8px;font-size:21px;font-weight:800;color:#f1f1f1;letter-spacing:-0.4px;">Change Delete Password</h1>
               <p style="margin:0;font-size:13.5px;color:#555;line-height:1.65;">Use this OTP to verify your identity<br/>before changing your <strong style="color:#888;">admin delete password</strong>.</p>
             </td></tr>
@@ -59,14 +58,6 @@ export const getChangePasswordOtpTemplate = (otp) => {
 
             <!-- Divider -->
             <tr><td style="padding:0 32px;"><div style="height:1px;background:linear-gradient(90deg,transparent,#1e1e1e,transparent);"></div></td></tr>
-
-            <!-- Warning -->
-            <tr><td style="padding:20px 32px 8px;">
-              <div style="background:rgba(176,0,0,0.06);border:1px solid rgba(176,0,0,0.14);border-left:3px solid #b00000;border-radius:8px;padding:14px 16px;">
-                <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#b00000;">🚨 SECURITY NOTICE</p>
-                <p style="margin:0;font-size:12px;color:#555;line-height:1.7;">If you did not request a delete password change, someone may be attempting to access your system. Change your login credentials immediately.</p>
-              </div>
-            </td></tr>
 
             <!-- Checklist -->
             <tr><td style="padding:16px 32px 28px;">

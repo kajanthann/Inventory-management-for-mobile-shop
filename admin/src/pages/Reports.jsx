@@ -441,18 +441,21 @@ const Reports = () => {
 
   // ── Delete (both sales + repair of that month) ─────────────────
   const handleDelete = async (group, password) => {
-    setDeleteLoading(true);
-    try {
-      const ids = [group.sales?._id, group.repair?._id].filter(Boolean);
-      await Promise.all(ids.map((id) =>
-        axiosInstance.delete(`/api/reports/${id}`, { data: { deletePassword: password } })));
-      successToast("Report deleted");
-      setReports((prev) => prev.filter((r) => !ids.includes(r._id)));
-      setDeleteTarget(null);
-    } catch (err) {
-      errorToast(err.response?.data?.message || "Delete failed");
-    } finally { setDeleteLoading(false); }
-  };
+  setDeleteLoading(true);
+  try {
+    const ids = [group.sales?._id, group.repair?._id].filter(Boolean);
+    await Promise.all(ids.map((id) =>
+      axiosInstance.delete(`/api/reports/${id}`, {
+        headers: { "x-admin-password": password },
+      })));
+    successToast("Report deleted");
+    setReports((prev) => prev.filter((r) => !ids.includes(r._id)));
+    setDeleteTarget(null);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, message: err.response?.data?.message || "Delete failed" };
+  } finally { setDeleteLoading(false); }
+};
 
   // ── Skeleton ───────────────────────────────────────────────────
   if (loading && reports.length === 0) {

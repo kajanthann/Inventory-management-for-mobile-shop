@@ -6,7 +6,8 @@ import saleModel from "../models/Sale.js";
 import productModel from "../models/product.js";
 import repairModel from "../models/repair.js";
 import { getOtpEmailTemplate, getChangePasswordOtpTemplate } from "../utils/emailTemplates.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs"; 
+import { checkAdminPassword, getAdminEmail } from "../utils/adminPassword.js";
 
 // STEP 1: SEND OTP
 export const adminLogin = async (req, res) => {
@@ -97,55 +98,48 @@ export const sendEmailTo = async (req, res) => {
   }
 };
 
-// ── rename verifyDeletePassword → checkDeletePassword ─────────────
+// ── VERIFY PASSWORD (edit popup use pannum) ───────────────────────
+// Route name maathala, so routes file touch pannanum-nu avasiyam illa
 export const checkDeletePassword = async (req, res) => {
   try {
     const { password } = req.body;
-    if (!password) return res.status(400).json({ success: false, message: "Password required" });
-
-    const admin = await Admin.findOne({ email: process.env.ADMIN_EMAIL });
-
-    if (!admin?.deletePassword) {
-      const match = password === process.env.ADMIN_DELETE_PASSWORD;
-      return res.json({ success: match, message: match ? "Verified" : "Incorrect password" });
+    if (!password) {
+      return res.status(400).json({ success: false, message: "Password required" });
     }
 
-    const match = await bcrypt.compare(password, admin.deletePassword);
+    const match = await checkAdminPassword(password);
     return res.json({ success: match, message: match ? "Verified" : "Incorrect password" });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// ════════════════════════════════════════════════════════════════
-// ── STEP 1: REQUEST OTP FOR DELETE PASSWORD CHANGE ───────────────
+// ── STEP 1: REQUEST OTP ──────────────────────────────────────────
 export const requestChangeDeletePasswordOtp = async (req, res) => {
   try {
-    const email = process.env.ADMIN_EMAIL;
-
+    const email = getAdminEmail();
     if (!email) {
       return res.status(500).json({ success: false, message: "ADMIN_EMAIL not set in .env" });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // ── Use findOneAndUpdate to avoid validation issues on old docs ──
-    const admin = await Admin.findOneAndUpdate(
+    await Admin.findOneAndUpdate(
       { email },
       {
         $set: {
           otp,
-          otpExpiresAt: new Date(Date.now() + 1 * 60 * 1000),
-          otpAttempts:  0,
-          otpPurpose:   "changeDeletePassword",
+          otpExpiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 min
+          otpAttempts: 0,
+          otpPurpose: "changeDeletePassword",
         },
       },
-      { new: true, upsert: true }  // create if not exists
+      { new: true, upsert: true }
     );
 
     await sendEmail(
       email,
-      "SmartSpider — Change Delete Password OTP",
+      "SmartSpider — Change Password OTP",
       getChangePasswordOtpTemplate(otp)
     );
 
@@ -156,67 +150,38 @@ export const requestChangeDeletePasswordOtp = async (req, res) => {
   }
 };
 
-// ════════════════════════════════════════════════════════════════
-// ── STEP 2: VERIFY OTP + SET NEW DELETE PASSWORD ─────────────────
-
+// ── STEP 2: VERIFY OTP + SET NEW PASSWORD ────────────────────────
 export const changeDeletePassword = async (req, res) => {
   try {
     const { otp, newPassword, confirmPassword } = req.body;
 
-    // 1. Validate request fields
     if (!otp || !newPassword || !confirmPassword) {
       return res.status(400).json({
         success: false,
         message: "OTP, new password and confirm password are required",
       });
     }
-
     if (!/^\d{6}$/.test(String(otp))) {
-      return res.status(400).json({
-        success: false,
-        message: "OTP must contain exactly 6 digits",
-      });
+      return res.status(400).json({ success: false, message: "OTP must contain exactly 6 digits" });
     }
-
     if (newPassword !== confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "Passwords do not match",
-      });
+      return res.status(400).json({ success: false, message: "Passwords do not match" });
     }
-
     if (newPassword.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: "Password must be at least 6 characters",
-      });
+      return res.status(400).json({ success: false, message: "Password must be at least 6 characters" });
     }
 
-    // 2. Find admin
-    const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-
+    const email = getAdminEmail();
     if (!email) {
-      return res.status(500).json({
-        success: false,
-        message: "ADMIN_EMAIL is missing from backend .env",
-      });
+      return res.status(500).json({ success: false, message: "ADMIN_EMAIL is missing from backend .env" });
     }
 
     const admin = await Admin.findOne({ email });
-
     if (!admin) {
-      return res.status(404).json({
-        success: false,
-        message: "Admin not found. Request a new OTP.",
-      });
+      return res.status(404).json({ success: false, message: "Admin not found. Request a new OTP." });
     }
 
-    // 3. Validate OTP request
-    if (
-      !admin.otp ||
-      admin.otpPurpose !== "changeDeletePassword" ||
-      !admin.otpExpiresAt
-    ) {
+    if (!admin.otp || admin.otpPurpose !== "changeDeletePassword" || !admin.otpExpiresAt) {
       return res.status(400).json({
         success: false,
         message: "No valid password change OTP found. Request a new OTP.",
@@ -225,68 +190,34 @@ export const changeDeletePassword = async (req, res) => {
 
     if (new Date(admin.otpExpiresAt).getTime() <= Date.now()) {
       await Admin.findByIdAndUpdate(admin._id, {
-        $unset: {
-          otp: 1,
-          otpExpiresAt: 1,
-          otpAttempts: 1,
-          otpPurpose: 1,
-        },
+        $unset: { otp: 1, otpExpiresAt: 1, otpAttempts: 1, otpPurpose: 1 },
       });
-
-      return res.status(400).json({
-        success: false,
-        message: "OTP expired. Request a new one.",
-      });
+      return res.status(400).json({ success: false, message: "OTP expired. Request a new one." });
     }
 
     if ((admin.otpAttempts || 0) >= 5) {
-      return res.status(429).json({
-        success: false,
-        message: "Too many attempts. Request a new OTP.",
-      });
+      return res.status(429).json({ success: false, message: "Too many attempts. Request a new OTP." });
     }
 
-    // 4. Verify OTP
     if (String(otp) !== String(admin.otp)) {
-      await Admin.findByIdAndUpdate(admin._id, {
-        $inc: { otpAttempts: 1 },
-      });
-
-      return res.status(400).json({
-        success: false,
-        message: "Invalid OTP. Please check your email.",
-      });
+      await Admin.findByIdAndUpdate(admin._id, { $inc: { otpAttempts: 1 } });
+      return res.status(400).json({ success: false, message: "Invalid OTP. Please check your email." });
     }
 
-    // 5. Hash and save password
+    // ✅ Hash + save into `password`
     const hashed = await bcrypt.hash(newPassword, 10);
 
     await Admin.findByIdAndUpdate(admin._id, {
-      $set: {
-        deletePassword: hashed,
-      },
-      $unset: {
-        otp: 1,
-        otpExpiresAt: 1,
-        otpAttempts: 1,
-        otpPurpose: 1,
-      },
+      $set: { password: hashed },
+      $unset: { otp: 1, otpExpiresAt: 1, otpAttempts: 1, otpPurpose: 1 },
     });
 
-    return res.json({
-      success: true,
-      message: "Delete password changed successfully!",
-    });
+    return res.json({ success: true, message: "Password changed successfully!" });
   } catch (error) {
     console.error("changeDeletePassword error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to change delete password",
-    });
+    return res.status(500).json({ success: false, message: "Failed to change password" });
   }
 };
-
 
 // ── helpers ───────────────────────────────────────────────────────
 const startOf = (unit, date = new Date()) => {

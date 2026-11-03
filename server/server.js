@@ -20,6 +20,13 @@ const app = express();
 app.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "atoken",
+    "x-admin-password",
+  ],
 }));
 app.use(express.json({ limit: "15mb" }));   // PDF base64 attachments-kku
 app.use(cookieParser());

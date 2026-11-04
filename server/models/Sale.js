@@ -13,10 +13,10 @@ const itemSchema = new mongoose.Schema(
   { _id: false }
 );
 
-// ── Extra / additional charge item ───────────────────────────────
+// ── Additional charge item ───────────────────────────────────────
 const extraItemSchema = new mongoose.Schema(
   {
-    label: { type: String, required: true, trim: true }, // e.g. "Screen protector fitting"
+    label: { type: String, required: true, trim: true },
     price: { type: Number, required: true, min: 0 },
   },
   { _id: false }
@@ -24,32 +24,26 @@ const extraItemSchema = new mongoose.Schema(
 
 const saleSchema = new mongoose.Schema(
   {
-    invoiceNo: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
+    invoiceNo: { type: String, required: true, unique: true, trim: true },
 
-    date: { type: String, required: true }, // "2026-04-24"
-    time: { type: String, required: true }, // "10:15:32"
+    date: { type: String, required: true },
+    time: { type: String, required: true },
 
+    
     items: {
       type: [itemSchema],
-      validate: [(val) => val.length > 0, "Cart cannot be empty"],
-    },
-
-    // ── Additional charges (screen protector, delivery, etc.) ──
-    extraItems: {
-      type: [extraItemSchema],
       default: [],
+      validate: {
+        validator: function (val) {
+          return val.length > 0 || (this.extraItems && this.extraItems.length > 0);
+        },
+        message: "Add at least one product or additional item",
+      },
     },
 
-    extraTotal: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
+    
+    extraItems: { type: [extraItemSchema], default: [] },
+    extraTotal: { type: Number, default: 0, min: 0 },
 
     paymentMethod: {
       type: String,
@@ -57,12 +51,12 @@ const saleSchema = new mongoose.Schema(
       required: true,
     },
 
-    subtotal:   { type: Number, required: true, min: 0 },
-    discount:   { type: Number, default: 0,     min: 0 },
-    tax:        { type: Number, default: 0,     min: 0 },
+    subtotal:   { type: Number, default: 0, min: 0 },
+    discount:   { type: Number, default: 0, min: 0 },
+    tax:        { type: Number, default: 0, min: 0 },
     grandTotal: { type: Number, required: true, min: 0 },
     amountPaid: { type: Number, required: true, min: 0 },
-    change:     { type: Number, default: 0,     min: 0 },
+    change:     { type: Number, default: 0, min: 0 },
 
     customer: {
       name:    { type: String, default: "" },

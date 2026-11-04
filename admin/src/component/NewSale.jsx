@@ -570,7 +570,7 @@ const NewSale = ({
           <div className={`${cardCls} p-3 sm:p-4`}>
             <div className="flex items-center justify-between mb-3">
               <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                Additional Charges
+                Additional 
               </div>
               <button
                 onClick={addExtraRow}
@@ -750,7 +750,7 @@ const NewSale = ({
 
             <button
               onClick={handleCompleteSale}
-              disabled={cartItems.length === 0 || submitting}
+              disabled={(cartItems.length === 0 && validExtras.length === 0) || submitting}
               className="w-full py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition bg-[#b00000] hover:bg-[#8b0000] disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {submitting ? (

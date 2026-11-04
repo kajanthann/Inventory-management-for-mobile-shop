@@ -10,12 +10,18 @@ export const createSale = async (req, res) => {
   try {
     const data = req.body;
 
-    if (!data.invoiceNo || !data.items?.length) {
+    const items      = data.items || [];
+    const extraItems = (data.extraItems || []).filter(
+      (e) => e.label?.trim() && Number(e.price) > 0
+    );
+
+    // ✅ items illa-na extraItems irukkanum
+    if (!data.invoiceNo || (items.length === 0 && extraItems.length === 0)) {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({
         success: false,
-        message: "Invoice number and items are required",
+        message: "Add at least one product or additional item",
       });
     }
 
@@ -28,16 +34,13 @@ export const createSale = async (req, res) => {
       });
     }
 
-    // ── Check stock availability ──────────────────────────────
-    for (const item of data.items) {
+    // ── Check stock availability (items irundha mattum) ──
+    for (const item of items) {
       const product = await productModel.findById(item.product).session(session);
       if (!product) {
         await session.abortTransaction();
         session.endSession();
-        return res.status(404).json({
-          success: false,
-          message: `Product not found: ${item.name}`,
-        });
+        return res.status(404).json({ success: false, message: `Product not found: ${item.name}` });
       }
       if (product.qty < item.qty) {
         await session.abortTransaction();
@@ -49,11 +52,9 @@ export const createSale = async (req, res) => {
       }
     }
 
-    // ── Calculate extraTotal from extraItems if not provided ──
-    const extraItems = data.extraItems || [];
-    const extraTotal = extraItems.reduce((s, e) => s + Number(e.price || 0), 0);
+    // ── Server-side extraTotal ──
+    const extraTotal = extraItems.reduce((s, e) => s + Number(e.price), 0);
 
-    // ── Save sale ─────────────────────────────────────────────
     const [newSale] = await saleModel.create(
       [
         {
@@ -61,39 +62,37 @@ export const createSale = async (req, res) => {
           date:          data.date,
           time:          data.time,
           customer:      data.customer,
-          items:         data.items,
-          extraItems,                        // ← save extras
-          extraTotal:    data.extraTotal ?? extraTotal,
+          items,
+          extraItems,
+          extraTotal,
           paymentMethod: data.paymentMethod,
-          subtotal:      data.subtotal,
-          discount:      data.discount  || 0,
-          tax:           data.tax       || 0,
+          subtotal:      data.subtotal || 0,
+          discount:      data.discount || 0,
+          tax:           data.tax      || 0,
           grandTotal:    data.grandTotal,
           amountPaid:    data.amountPaid,
-          change:        data.change    || 0,
+          change:        data.change   || 0,
           status:        "completed",
         },
       ],
       { session }
     );
 
-    // ── Decrement stock for each item ─────────────────────────
-    const bulkOps = data.items.map((item) => ({
-      updateOne: {
-        filter: { _id: item.product },
-        update: { $inc: { qty: -item.qty } },
-      },
-    }));
-    await productModel.bulkWrite(bulkOps, { session });
+    // ✅ bulkWrite empty array-ku error tharum, so guard
+    if (items.length > 0) {
+      const bulkOps = items.map((item) => ({
+        updateOne: {
+          filter: { _id: item.product },
+          update: { $inc: { qty: -item.qty } },
+        },
+      }));
+      await productModel.bulkWrite(bulkOps, { session });
+    }
 
     await session.commitTransaction();
     session.endSession();
 
-    res.status(201).json({
-      success: true,
-      message: "Sale created successfully",
-      sale:    newSale,
-    });
+    res.status(201).json({ success: true, message: "Sale created successfully", sale: newSale });
   } catch (error) {
     await session.abortTransaction();
     session.endSession();

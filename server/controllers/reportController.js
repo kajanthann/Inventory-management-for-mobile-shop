@@ -282,7 +282,7 @@ export const sendReportPdf = async (req, res) => {
     const base = await reportModel.findById(req.params.id);
     if (!base) return res.status(404).json({ success: false, message: "Report not found" });
 
-    const to = process.env.EMAIL_USER;   // ← always this address
+    const to = process.env.ADMIN_EMAIL;   // ← always this address
     if (!to) return res.status(500).json({ success: false, message: "EMAIL_USER not set in .env" });
 
     await sendEmail(
